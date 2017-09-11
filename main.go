@@ -71,5 +71,5 @@ func main() {
     //s := Student{ "Tom", 21 }
     http.HandleFunc("/hello/", handlerHello)
     http.HandleFunc("/student/", handlerStudent)
-    http.ListenAndServe(os.Getenv("PORT"), nil)
+    http.ListenAndServe(":" + os.Getenv("PORT"), nil)
 }
