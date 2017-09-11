@@ -13,6 +13,7 @@ import
     "net/http"
     "fmt"
     "encoding/json"
+    "os"
 )
 
 type Student struct
@@ -70,5 +71,5 @@ func main() {
     //s := Student{ "Tom", 21 }
     http.HandleFunc("/hello/", handlerHello)
     http.HandleFunc("/student/", handlerStudent)
-    http.ListenAndServe(":8080", nil)
+    http.ListenAndServe(os.Getenv("PORT"), nil)
 }
