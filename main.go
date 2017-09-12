@@ -36,6 +36,7 @@ func handlerHello (w http.ResponseWriter, r *http.Request) {
 
 func handlerStudent (w http.ResponseWriter, r *http.Request) {
     http.Header.Add(w.Header(), "content-type", "application/json")
+    //fmt.Fprintln(w, os.Getenv("PORT"))
 
     parts := strings.Split(r.URL.Path, "/")
 
@@ -69,6 +70,7 @@ func handlerStudent (w http.ResponseWriter, r *http.Request) {
 
 func main() {
     //s := Student{ "Tom", 21 }
+    fmt.Println(os.Getenv("PORT"))
     http.HandleFunc("/hello/", handlerHello)
     http.HandleFunc("/student/", handlerStudent)
     http.ListenAndServe(":" + os.Getenv("PORT"), nil)
