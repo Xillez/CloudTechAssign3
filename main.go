@@ -29,9 +29,7 @@ func handlerHello (w http.ResponseWriter, r *http.Request) {
         http.Error(w, http.StatusText(status), status)
         return
     }
-    name := parts[2]
-    fmt.Fprintln(w, parts)
-    fmt.Fprintln(w, name)
+    fmt.Fprintln(w, "Hello " +  parts[2] + " " + parts[3])
 }
 
 func handlerStudent (w http.ResponseWriter, r *http.Request) {
