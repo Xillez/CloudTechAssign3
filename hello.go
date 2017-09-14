@@ -14,34 +14,39 @@ import
     "fmt"
     "encoding/json"
     "os"
-    //"strconv"
+    "strconv"
 )
 
-type ProjectInfo struct
+type Student struct
 {
-    Owner string    `json:"login"`
-    //Langs []string  `json:"age"`
+    Name string `json:"name"`
+    Age int     `json:"age"`
 }
 
-func handlerProjectinfo (w http.ResponseWriter, r *http.Request) {
-    project := ProjectInfo{""}
+func handlerHello (w http.ResponseWriter, r *http.Request) {
     parts := strings.Split(r.URL.Path, "/")
-    if (len(parts) != 6) {
-        http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+    if (len(parts) != 4) {
+        status := 400
+        http.Error(w, http.StatusText(status), status)
         return
     }
-    resp, err := http.Get("http://api.github.com/repos/" + parts[4] + "/" + parts[5] + "/")
-    err2 := json.NewDecoder(resp.Body).Decode(&project)
-    defer resp.Body.Close()
-    if (err == nil && err2 == nil) {
-        fmt.Println(project)
-    } else {
-        fmt.Println(err)
-        fmt.Println(err2)
-    }
+    fmt.Fprintln(w, "Hello, " +  parts[2] + " " + parts[3] + "!")
 }
 
-/*func handlerStudent (w http.ResponseWriter, r *http.Request) {
+func replyWithAllStudents (w http.ResponseWriter, db StudentsDB) {
+    json.NewEncoder(w).Encode(db.students)
+}
+
+func replyWithStudents (w http.ResponseWriter, db StudentsDB, i int) {
+    // Make sure that "i" is valid
+    if (db.Count() <= i) {
+        http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+        return
+    }
+    json.NewEncoder(w).Encode(db.Get(i))
+}
+
+func handlerStudent (w http.ResponseWriter, r *http.Request) {
     // --------------
     db := StudentsDB{}
     // --------------
@@ -75,11 +80,12 @@ func handlerProjectinfo (w http.ResponseWriter, r *http.Request) {
     } else if (parts[2] == "1") {
         replyWithStudent(&w, &db, i)
     }
-}*/
+}
 
 func main() {
     //s := Student{ "Tom", 21 }
     fmt.Println(os.Getenv("PORT"))
-    http.HandleFunc("/projectinfo/v1/", handlerProjectinfo)
+    http.HandleFunc("/hello/", handlerHello)
+    http.HandleFunc("/student/", handlerStudent)
     http.ListenAndServe(":" + os.Getenv("PORT"), nil)
 }
