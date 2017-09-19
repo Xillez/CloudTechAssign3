@@ -17,65 +17,77 @@ import
     //"strconv"
 )
 
+var baseUrl = "https://api.github.com/repos/"
+
+// Entire inport stucture
 type ProjectInfo struct
 {
-    Owner string    `json:"login"`
-    //Langs []string  `json:"age"`
+    Name string       `json:"name"`
+    Owner struct {
+        Login string  `json:"login"`
+    } `json:"owner"`
+    Langs []string
+    TopContrib []struct {
+        Name string   `json:"login"`
+        Commits int   `json:"contributions"`
+    }
+}
+
+// Export structure
+type ExportInfo struct {
+    Name string         `json:"name"`
+    Owner string        `json:"owner"`
+    Langs []string      `json:"languages"`
+    Contrib string      `json:"contributor"`
+    Commits int         `json:"commits"`
+}
+
+// Check for error and print it if any
+func checkPrintErr(err error/*, customErrCode, customErrMsg string*/) {
+    if (err != nil) { panic(err) }
+}
+
+func export(w *http.ResponseWriter, export *ProjectInfo) {
+    http.Header.Add((*w).Header(), "content-type", "application/json")
+    checkPrintErr(json.NewEncoder(*w).Encode(ExportInfo{Name: export.Name,
+                                        Owner: export.Owner.Login,
+                                        Langs: export.Langs,
+                                        Contrib: export.TopContrib[0].Name,
+                                        Commits: export.TopContrib[0].Commits}))
+}
+
+// Converts a maps keys into []string
+func deMapToStringArray(langMap map[string]interface{}) []string {
+    array := make([]string, 0, len(langMap))
+    for k := range langMap {
+        array = append(array, k)
+    }
+    return array
 }
 
 func handlerProjectinfo (w http.ResponseWriter, r *http.Request) {
-    project := ProjectInfo{""}
+    project := ProjectInfo{}
+    var langMap map[string]interface{}
     parts := strings.Split(r.URL.Path, "/")
     if (len(parts) != 6) {
         http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
         return
     }
-    resp, err := http.Get("http://api.github.com/repos/" + parts[4] + "/" + parts[5] + "/")
-    err2 := json.NewDecoder(resp.Body).Decode(&project)
+
+    resp, err := http.Get(baseUrl + parts[4] + "/" + parts[5])
+    checkPrintErr(err)
     defer resp.Body.Close()
-    if (err == nil && err2 == nil) {
-        fmt.Println(project)
-    } else {
-        fmt.Println(err)
-        fmt.Println(err2)
-    }
+    checkPrintErr(json.NewDecoder(resp.Body).Decode(&project))
+    resp, err = http.Get(baseUrl + parts[4] + "/" + parts[5] + "/languages")
+    checkPrintErr(err)
+    checkPrintErr(json.NewDecoder(resp.Body).Decode(&langMap))
+    project.Langs = deMapToStringArray(langMap)
+    resp, err = http.Get(baseUrl + parts[4] + "/" + parts[5] + "/contributors")
+    checkPrintErr(err)
+    checkPrintErr(json.NewDecoder(resp.Body).Decode(&project.TopContrib))
+
+    export(&w, &project)
 }
-
-/*func handlerStudent (w http.ResponseWriter, r *http.Request) {
-    // --------------
-    db := StudentsDB{}
-    // --------------
-    http.Header.Add(w.Header(), "content-type", "application/json")
-    //fmt.Fprintln(w, os.Getenv("PORT"))
-
-    parts := strings.Split(r.URL.Path, "/")
-
-    // 0
-    s0 := Student{"Tom", 21}
-    // 1
-    s1 := Student{"Alice", 24}
-    students := []Student { s0, s1, }
-
-    // Error handling
-    if (len(parts) != 3) {
-        http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-        return
-    }
-
-    // Handle "/student/"
-    i, err := strconv.Atoi(parts[2])
-    if (err != nil) {
-        http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-        return
-    }
-
-    if (parts[2] == "") {
-        replyWithAllStudents(&w, &db)
-        // Handle "/student/1"
-    } else if (parts[2] == "1") {
-        replyWithStudent(&w, &db, i)
-    }
-}*/
 
 func main() {
     //s := Student{ "Tom", 21 }
