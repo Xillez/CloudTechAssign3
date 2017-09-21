@@ -1,97 +1,270 @@
+// Program is ade in collaboratio with
+//          - Jonas Solsvik
+
 package main
 
-/*
-{
-    "name": <value>, e.g. "Tom"
-    "age": <value>   e.g. 21
-}
-*/
-
-import
-(
-    "strings"
-    "net/http"
-    "fmt"
-    "encoding/json"
-    "os"
-    //"strconv"
+import (
+	"encoding/json"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"strings"
+	//"strconv"
 )
 
-var baseUrl = "https://api.github.com/repos/"
+var baseURL = "https://api.github.com/repos/"
 
-// Entire inport stucture
-type ProjectInfo struct
-{
-    Name string       `json:"name"`
-    Owner struct {
-        Login string  `json:"login"`
-    } `json:"owner"`
-    Langs []string
-    TopContrib []struct {
-        Name string   `json:"login"`
-        Commits int   `json:"contributions"`
-    }
+// RunningTest tells the program wether we're testing or not
+var RunningTest = false
+
+var errorStr = []string{
+	"NoError",
+	"InvalidServer",
+	"StatusCodeOutOfBounds",
+	"InvalidVitalData",
+	"ReadFileFaliure",
+	"UnmarshalFail",
+	"InvalidURL",
+	"EncodeFail",
+	"DecodeFail",
 }
 
-// Export structure
+// CustError - A custum error type
+type CustError struct {
+	status int
+	msg    string
+}
+
+// ProjectInfo is the entire inport stucture
+type ProjectInfo struct {
+	Name  string `json:"name"`
+	Owner struct {
+		Login string `json:"login"`
+	} `json:"owner"`
+	Langs      map[string]interface{}
+	TopContrib []struct {
+		Name    string `json:"login"`
+		Commits int    `json:"contributions"`
+	}
+}
+
+// ExportInfo is the entire export structure
 type ExportInfo struct {
-    Name string         `json:"name"`
-    Owner string        `json:"owner"`
-    Langs []string      `json:"languages"`
-    Contrib string      `json:"contributor"`
-    Commits int         `json:"commits"`
+	Name    string   `json:"name"`
+	Owner   string   `json:"owner"`
+	Langs   []string `json:"languages"`
+	Contrib string   `json:"contributor"`
+	Commits int      `json:"commits"`
 }
 
-// Check for error and print it if any
-func checkPrintErr(err error/*, customErrCode, customErrMsg string*/) {
-    if (err != nil) { panic(err) }
+// CheckValidResponse - Checks the response if StatusCode er 2XX and Server is "http://api.github.com"
+func checkValidResponse(resp *http.Response) CustError {
+	if resp.StatusCode < 200 || resp.StatusCode > 226 {
+		return CustError{http.StatusBadRequest, "Check URL or repository details"}
+	}
+
+	// Nothing bad happened
+	return CustError{0, errorStr[0]}
 }
 
-func export(w *http.ResponseWriter, export *ProjectInfo) {
-    http.Header.Add((*w).Header(), "content-type", "application/json")
-    checkPrintErr(json.NewEncoder(*w).Encode(ExportInfo{Name: export.Name,
-                                        Owner: export.Owner.Login,
-                                        Langs: export.Langs,
-                                        Contrib: export.TopContrib[0].Name,
-                                        Commits: export.TopContrib[0].Commits}))
+func checkVitalData(data *ProjectInfo) CustError {
+	// Checks wether vital repo data exists
+	if (*data).Name == "" || (*data).Owner.Login == "" {
+		return CustError{http.StatusPartialContent, errorStr[3]}
+	}
+
+	// Nothing bad happened
+	return CustError{0, errorStr[0]}
 }
 
-// Converts a maps keys into []string
-func deMapToStringArray(langMap map[string]interface{}) []string {
-    array := make([]string, 0, len(langMap))
-    for k := range langMap {
-        array = append(array, k)
-    }
-    return array
+// CheckPrintErr - Checks for error, print it if any and returns true, otherwise returns false
+func checkPrintErr(err CustError, w http.ResponseWriter) bool {
+	if err.status != 0 {
+		http.Error(w, http.StatusText(err.status)+" | Program error: "+err.msg, err.status)
+		return true
+	}
+
+	return false
 }
 
-func handlerProjectinfo (w http.ResponseWriter, r *http.Request) {
-    project := ProjectInfo{}
-    var langMap map[string]interface{}
-    parts := strings.Split(r.URL.Path, "/")
-    if (len(parts) != 6) {
-        http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-        return
-    }
+// openContribJSON reads "main.json" and decodes it into "updated", writes errors to browser if any errors
+func openMainJSON(updated interface{}) CustError {
+	file, err := ioutil.ReadFile("main.json")
 
-    resp, err := http.Get(baseUrl + parts[4] + "/" + parts[5])
-    checkPrintErr(err)
-    defer resp.Body.Close()
-    checkPrintErr(json.NewDecoder(resp.Body).Decode(&project))
-    resp, err = http.Get(baseUrl + parts[4] + "/" + parts[5] + "/languages")
-    checkPrintErr(err)
-    checkPrintErr(json.NewDecoder(resp.Body).Decode(&langMap))
-    project.Langs = deMapToStringArray(langMap)
-    resp, err = http.Get(baseUrl + parts[4] + "/" + parts[5] + "/contributors")
-    checkPrintErr(err)
-    checkPrintErr(json.NewDecoder(resp.Body).Decode(&project.TopContrib))
+	// Failed reading the file
+	if err != nil {
+		return CustError{http.StatusInternalServerError, "Failed to load local file: main.json"}
+	}
 
-    export(&w, &project)
+	json.Unmarshal(file, &updated)
+
+	// Failed unmarshaling the file
+	if err != nil {
+		return CustError{http.StatusInternalServerError, "Failed to unmarshal local file: main.json"}
+	}
+
+	// Nothing bad happened
+	return CustError{0, errorStr[0]}
+}
+
+// openLangJSON reads "languages.json" and decodes it into "updated", writes errors to browser if any errors
+func openLangJSON(updated interface{}) CustError {
+	file, err := ioutil.ReadFile("languages.json")
+
+	// Failed reading the file
+	if err != nil {
+		return CustError{http.StatusInternalServerError, "Failed to load local file: languages.json"}
+	}
+
+	err = json.Unmarshal(file, &updated)
+
+	// Failed unmarshaling the file
+	if err != nil {
+		return CustError{http.StatusInternalServerError, "Failed to unmarshal local file: languages.json"}
+	}
+
+	// Nothing bad happened
+	return CustError{0, errorStr[0]}
+}
+
+// openContribJSON reads "contributors.json" and decodes it into "updated", writes errors to browser if any errors
+func openContribJSON(updated interface{}) CustError {
+	file, err := ioutil.ReadFile("contributors.json")
+
+	// Failed reading the file
+	if err != nil {
+		return CustError{http.StatusInternalServerError, "Failed to load local file: contributors.json"}
+	}
+
+	err = json.Unmarshal(file, &updated)
+
+	// Failed unmarshaling the file
+	if err != nil {
+		return CustError{http.StatusInternalServerError, "Failed to unmarshal local file: contributors.json"}
+	}
+
+	// Nothing bad happened
+	return CustError{0, errorStr[0]}
+}
+
+// Get the URL given to server and splits it for processing
+func getSplitURL(r *http.Request, expectedNrSplits int) ([]string, CustError) {
+	parts := strings.Split(r.URL.Path, "/")
+
+	// Missing a field/part of URL
+	if len(parts) != expectedNrSplits {
+		return nil, CustError{http.StatusBadRequest, errorStr[6]}
+	}
+
+	// Nothing bad happened
+	return parts, CustError{0, errorStr[0]}
+}
+
+// Converts and exports to http.ResponseWriter
+func export(w http.ResponseWriter, export *ProjectInfo) CustError {
+	http.Header.Add(w.Header(), "content-type", "application/json")
+
+	var output = ExportInfo{}
+
+	output.Langs = make([]string, 0, len((*export).Langs))
+
+	// Check vital data
+	err := checkVitalData(export)
+	if err.status != 0 {
+		return CustError{http.StatusPartialContent, ": Some vital values are empty or nonexistent"}
+	}
+
+	// map[string]interface{} to []string convertion
+	for k := range (*export).Langs {
+		output.Langs = append(output.Langs, k)
+	}
+
+	output.Name = (*export).Name
+	output.Owner = (*export).Owner.Login
+	output.Contrib = (*export).TopContrib[0].Name
+	output.Commits = (*export).TopContrib[0].Commits
+
+	errEncode := json.NewEncoder(w).Encode(output)
+
+	// Encoding failed
+	if errEncode != nil {
+		return CustError{http.StatusInternalServerError, errorStr[7]}
+	}
+
+	// Nothing bad happened
+	return CustError{0, errorStr[0]}
+}
+
+// Fetches and decodes json into given variable
+func fetchDecodedJSON(url string, updated interface{}) CustError {
+	resp, err := http.Get(url)
+	if err != nil {
+		return CustError{resp.StatusCode, errorStr[6]}
+	}
+
+	// Check if the response is valid
+	errResp := checkValidResponse(resp)
+	if errResp.status != 0 {
+		return errResp
+	}
+
+	defer resp.Body.Close()
+
+	// Decode
+	err = json.NewDecoder(resp.Body).Decode(updated)
+	if err != nil {
+		return CustError{http.StatusInternalServerError, errorStr[8]}
+	}
+
+	// Nothing bad happened
+	return CustError{0, errorStr[0]}
+}
+
+func handlerProjectinfo(w http.ResponseWriter, r *http.Request) {
+	project := ProjectInfo{}
+
+	// Check if splitting of URL, gives expected nr parts
+	parts, errorSplit := getSplitURL(r, 6)
+	if checkPrintErr(errorSplit, w) {
+		return
+	}
+
+	switch RunningTest {
+	case false:
+		// Get general repo data
+		if checkPrintErr(fetchDecodedJSON(baseURL+parts[4]+"/"+parts[5], &project), w) {
+			return
+		}
+		// Get repo language data
+		if checkPrintErr(fetchDecodedJSON(baseURL+parts[4]+"/"+parts[5]+"/languages", &project.Langs), w) {
+			return
+		}
+		// Get repo top contributor data
+		if checkPrintErr(fetchDecodedJSON(baseURL+parts[4]+"/"+parts[5]+"/contributors", &project.TopContrib), w) {
+			return
+		}
+	case true:
+		// Load general testrepo data
+		if checkPrintErr(openMainJSON(&project), w) {
+			return
+		}
+		// Load testrepo language data
+		if checkPrintErr(openLangJSON(&(project.Langs)), w) {
+			return
+		}
+		// Load testrepo top contributor data
+		if checkPrintErr(openContribJSON(&(project.TopContrib)), w) {
+			return
+		}
+	}
+
+	// Check if exported correctly
+	if checkPrintErr(export(w, &project), w) {
+		return
+	}
 }
 
 func main() {
-    //s := Student{ "Tom", 21 }
-    fmt.Println(os.Getenv("PORT"))
-    http.HandleFunc("/projectinfo/v1/", handlerProjectinfo)
-    http.ListenAndServe(":" + os.Getenv("PORT"), nil)
+	http.HandleFunc("/projectinfo/v1/", handlerProjectinfo)
+	/*log.Println(*/ http.ListenAndServe(":"+os.Getenv("PORT"), nil) /*)*/
 }
