@@ -2,7 +2,8 @@
 
 ### What is this repository for? ###
 
-* Cloud Technologies Assignment 1. Go app that absorbs repo-owner's name and repo's name and gives information about all detected languages and the contributor with the most commits
+Cloud Technologies Assignment 1. 
+Go app that absorbs repo-owner's name and repo's name and gives information about all detected languages and the contributor with the most commits
 
 ### How do I use it? ###
 
