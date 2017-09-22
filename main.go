@@ -1,5 +1,7 @@
-// Program is ade in collaboratio with
-//          - Jonas Solsvik
+// Program is made in collaboration with / got help from
+//          - Jonas J. Solsvik
+// 			- Zohaib Butt
+// 			- Eldar Hauge Torkelsen
 
 package main
 
