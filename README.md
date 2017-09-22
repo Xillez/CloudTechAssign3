@@ -6,9 +6,9 @@
 
 ### How do I use it? ###
 
-* Url: https://aqueous-woodland-82392.herokuapp.com/projectinfo/v1/github.com/<user>/repo
+* URL: https://aqueous-woodland-82392.herokuapp.com/projectinfo/v1/github.com/<user>/repo
 
-### Important contents ###
+### Important content ###
 
 * main.go - The main program
 * main_test.go - Test for the program
@@ -17,5 +17,4 @@
 
 ### Who do I talk to? ###
 
-* Repo owner or admin
-* Other community or team contact
+* Email: kentwh@stud.ntnu.no
