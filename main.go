@@ -52,17 +52,25 @@ type ProjectInfo struct {
 
 // ExportInfo is the entire export structure
 type ExportInfo struct {
-	Name    string   `json:"name"`
+	Name    string   `json:"project"`
 	Owner   string   `json:"owner"`
 	Langs   []string `json:"languages"`
-	Contrib string   `json:"contributor"`
+	Contrib string   `json:"committer"`
 	Commits int      `json:"commits"`
 }
 
 // CheckValidResponse - Checks the response if StatusCode er 2XX and Server is "http://api.github.com"
 func checkValidResponse(resp *http.Response) CustError {
 	if resp.StatusCode < 200 || resp.StatusCode > 226 {
+		if resp.StatusCode == 404 {
+			return CustError{http.StatusNotFound, "Repository NOT FOUND - Check URL or repository details"}
+		}
 		return CustError{http.StatusBadRequest, "Check URL or repository details"}
+	}
+
+	// Treat 206 as error, we're missing some vital repo info
+	if resp.StatusCode == 206 {
+		return CustError{http.StatusPartialContent, "Repo missing either name or owner"}
 	}
 
 	// Nothing bad happened
@@ -267,6 +275,7 @@ func handlerProjectinfo(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	//fmt.Println(os.Getenv("PORT"))
 	http.HandleFunc("/projectinfo/v1/", handlerProjectinfo)
 	/*log.Println(*/ http.ListenAndServe(":"+os.Getenv("PORT"), nil) /*)*/
 }

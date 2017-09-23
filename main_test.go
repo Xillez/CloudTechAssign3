@@ -2,10 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"sort"
+	"strconv"
 	"testing"
 )
 
@@ -38,6 +40,8 @@ func Test_correctURL(t *testing.T) {
 		}
 	}
 
+	fmt.Println(server.URL + "/projectinfo/v1/github.com/Xillez/Test")
+
 	sort.Strings(httpData.Langs)
 	sort.Strings(fileData.Langs)
 
@@ -61,6 +65,7 @@ func Test_correctURL(t *testing.T) {
 }
 
 func Test_partMissingURL(t *testing.T) {
+	RunningTest = false
 	server := httptest.NewServer(http.HandlerFunc(handlerProjectinfo))
 	defer server.Close()
 
@@ -69,7 +74,25 @@ func Test_partMissingURL(t *testing.T) {
 		t.Error("Test failed to fetch from \"" + server.URL + "/projectinfo/v1/github.com/Xillez\" | Error: " + err.Error())
 	}
 
+	fmt.Println(server.URL + "/projectinfo/v1/github.com/Xillez")
+
 	if resp.StatusCode != http.StatusBadRequest {
 		t.Error("Statuscode isn't \"" + http.StatusText(http.StatusBadRequest) + "\" / 400")
+	}
+}
+
+func Test_noncompleteURL(t *testing.T) {
+	RunningTest = false
+	server := httptest.NewServer(http.HandlerFunc(handlerProjectinfo))
+	defer server.Close()
+
+	resp, err := http.Get(server.URL + "/projectinfo/v1/github.com/Xilez/Test")
+
+	if err != nil {
+		t.Error("Test failed to fetch from \"" + server.URL + "/projectinfo/v1/github.com/Xillez/Test\" | Error: " + err.Error())
+	}
+
+	if resp.StatusCode != http.StatusNotFound {
+		t.Error("Statuscode isn't \"" + http.StatusText(http.StatusNotFound) + "\" / " + strconv.Itoa(http.StatusNotFound))
 	}
 }
