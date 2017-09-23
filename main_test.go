@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -40,8 +39,6 @@ func Test_correctURL(t *testing.T) {
 		}
 	}
 
-	fmt.Println(server.URL + "/projectinfo/v1/github.com/Xillez/Test")
-
 	sort.Strings(httpData.Langs)
 	sort.Strings(fileData.Langs)
 
@@ -73,8 +70,6 @@ func Test_partMissingURL(t *testing.T) {
 	if err != nil {
 		t.Error("Test failed to fetch from \"" + server.URL + "/projectinfo/v1/github.com/Xillez\" | Error: " + err.Error())
 	}
-
-	fmt.Println(server.URL + "/projectinfo/v1/github.com/Xillez")
 
 	if resp.StatusCode != http.StatusBadRequest {
 		t.Error("Statuscode isn't \"" + http.StatusText(http.StatusBadRequest) + "\" / 400")

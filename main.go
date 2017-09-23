@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	//"strconv"
 )
@@ -54,7 +55,7 @@ type ProjectInfo struct {
 type ExportInfo struct {
 	Name    string   `json:"project"`
 	Owner   string   `json:"owner"`
-	Langs   []string `json:"languages"`
+	Langs   []string `json:"language"`
 	Contrib string   `json:"committer"`
 	Commits int      `json:"commits"`
 }
@@ -188,6 +189,8 @@ func export(w http.ResponseWriter, export *ProjectInfo) CustError {
 	for k := range (*export).Langs {
 		output.Langs = append(output.Langs, k)
 	}
+
+	sort.Strings(output.Langs)
 
 	output.Name = (*export).Name
 	output.Owner = (*export).Owner.Login
