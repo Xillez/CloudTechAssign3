@@ -7,7 +7,7 @@ Go app that absorbs repo-owner's name and repo's name and gives information abou
 
 ### How do I use it? ###
 
-* URL: https://aqueous-woodland-82392.herokuapp.com/projectinfo/v1/github.com/<user>/repo
+* URL: https://aqueous-woodland-82392.herokuapp.com/projectinfo/v1/github.com/user/repo
 
 ### Important content ###
 
