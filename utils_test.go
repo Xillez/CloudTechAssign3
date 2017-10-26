@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func Test_something2(t *testing.T) {
+func Test_something1(t *testing.T) {
 	RunningTest = true
 
 	/*server := httptest.NewServer(http.HandlerFunc(handlerProjectinfo))
