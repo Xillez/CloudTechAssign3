@@ -62,18 +62,22 @@ var db *MongoDB
 // HandlerRoot - Root path handler, handles registration, viewing and
 // deleting of webhooks
 func handlerRoot(w http.ResponseWriter, r *http.Request) {
-	switch RunningTest {
-	case false:
-		// Get general repo data
-		/*if checkPrintErr(fetchDecodedJSON(baseURL+parts[4]+"/"+parts[5], &project), w) {
-			return
-		}*/
-	case true:
-		// Load general testrepo data
-		/*if checkPrintErr(openMainJSON(&project), w) {
-			return
-		}*/
+	switch r.Method {
+	case "GET":
+		// Serve the resource.
+	case "POST":
+		// Create a new record.
+	case "PUT":
+		// Update an existing record.
+	case "DELETE":
+		// Remove the record.
+	default:
+		// Give an error message.
 	}
+
+	/*if checkPrintErr(openMainJSON(&project), w) {
+		return
+	}*/
 }
 
 // HandlerLatest - Latest Currency Exchange handler
