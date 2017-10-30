@@ -1,6 +1,7 @@
 package db
 
 import (
+	"Assignment2/utils"
 	"net/http"
 
 	mgo "gopkg.in/mgo.v2"
@@ -44,9 +45,6 @@ func (db *MongoDB) Init() error {
 		return err
 	}
 
-	// Set up currency collection for future webhooks
-	currUpdate()
-
 	// Postpone closing connection until we return
 	defer session.Close()
 
@@ -56,7 +54,7 @@ func (db *MongoDB) Init() error {
 
 // GetWebhook - Gets the webhook with the given id
 // if no entry is found with the given id, it returns an empty webhook struct
-func (db *MongoDB) GetWebhook(id string, webhook *types.WebhookInfo) CustError {
+func (db *MongoDB) GetWebhook(id string, webhook *types.WebhookInfo) utils.CustError {
 	// Dial database
 	session, err := mgo.Dial(db.DatabaseURL)
 	if err != nil {
@@ -70,16 +68,16 @@ func (db *MongoDB) GetWebhook(id string, webhook *types.WebhookInfo) CustError {
 	errFind := session.DB(db.DatabaseName).C(db.WebCollName).Find(bson.M{"_id": id}).One(&webhook)
 	if errFind != nil {
 		// Something went wrong! Inform the user!
-		return CustError{http.StatusInternalServerError, "Failed to find webhook with id: \"" + id + "\" in the database | " + errFind.Error()}
+		return utils.CustError{http.StatusInternalServerError, "Failed to find webhook with id: \"" + id + "\" in the database | " + errFind.Error()}
 	}
 
 	// Nothing bad happened
-	return CustError{0, errorStr[0]}
+	return utils.CustError{0, errorStr[0]}
 }
 
 // GetCurrByTarget - Gets the currency with the given target currency
 // if no entry is found with the given id, it returns an error and ignores updating the given interface
-func (db *MongoDB) GetCurrByTarget(target string, curr *CurrencyInfo) CustError {
+func (db *MongoDB) GetCurrByTarget(target string, curr *types.CurrencyInfo) utils.CustError {
 	// Dial database
 	session, err := mgo.Dial(db.DatabaseURL)
 	if err != nil {
@@ -93,16 +91,16 @@ func (db *MongoDB) GetCurrByTarget(target string, curr *CurrencyInfo) CustError 
 	errFind := session.DB(db.DatabaseName).C(db.CurrCollName).Find(bson.M{"targetCurrency": target}).One(&curr)
 	if errFind != nil {
 		// Something went wrong! Inform the user!
-		return CustError{http.StatusInternalServerError, "Failed to find currency with target: \"" + target + "\" in the database | " + errFind.Error()}
+		return utils.CustError{http.StatusInternalServerError, "Failed to find currency with target: \"" + target + "\" in the database | " + errFind.Error()}
 	}
 
 	// Nothing bad happened
-	return CustError{0, errorStr[0]}
+	return utils.CustError{0, errorStr[0]}
 }
 
 // GetCurrByID - Gets the currency with the given id
 // if no entry is found with the given id, it returns an error and ignores updating the given interface
-func (db *MongoDB) GetCurrByID(id string, curr *CurrencyInfo) CustError {
+func (db *MongoDB) GetCurrByID(id string, curr *types.CurrencyInfo) utils.CustError {
 	// Dial database
 	session, err := mgo.Dial(db.DatabaseURL)
 	if err != nil {
@@ -116,15 +114,15 @@ func (db *MongoDB) GetCurrByID(id string, curr *CurrencyInfo) CustError {
 	errFind := session.DB(db.DatabaseName).C(db.CurrCollName).Find(bson.M{"_id": id}).One(&curr)
 	if errFind != nil {
 		// Something went wrong! Inform the user!
-		return CustError{http.StatusInternalServerError, "Failed to find currency with id: \"" + id + "\" in the database | " + errFind.Error()}
+		return utils.CustError{http.StatusInternalServerError, "Failed to find currency with id: \"" + id + "\" in the database | " + errFind.Error()}
 	}
 
 	// Nothing bad happened
-	return CustError{0, errorStr[0]}
+	return utils.CustError{0, errorStr[0]}
 }
 
 // AddWebhook - Adds "webhook" to Webhook collection
-func (db *MongoDB) AddWebhook(webhook types.WebhookInfo) CustError {
+func (db *MongoDB) AddWebhook(webhook types.WebhookInfo) utils.CustError {
 	// Dial database
 	session, err := mgo.Dial(db.DatabaseURL)
 	if err != nil {
@@ -138,15 +136,15 @@ func (db *MongoDB) AddWebhook(webhook types.WebhookInfo) CustError {
 	errInsert := session.DB(db.DatabaseName).C(db.WebCollName).Insert(webhook)
 	if errInsert != nil {
 		// Something went wrong! Inform the user!
-		return CustError{http.StatusInternalServerError, "Failed Inserting to database | " + errInsert.Error()}
+		return utils.CustError{http.StatusInternalServerError, "Failed Inserting to database | " + errInsert.Error()}
 	}
 
 	// Nothing bad happened
-	return CustError{0, errorStr[0]}
+	return utils.CustError{0, errorStr[0]}
 }
 
 // AddCurr - Adds "curr" to Currency collection
-func (db *MongoDB) AddCurr(curr CurrencyInfo) CustError {
+func (db *MongoDB) AddCurr(curr types.CurrencyInfo) utils.CustError {
 	// Dial database
 	session, err := mgo.Dial(db.DatabaseURL)
 	if err != nil {
@@ -160,15 +158,15 @@ func (db *MongoDB) AddCurr(curr CurrencyInfo) CustError {
 	errInsert := session.DB(db.DatabaseName).C(db.CurrCollName).Insert(curr)
 	if errInsert != nil {
 		// Something went wrong! Inform the user!
-		return CustError{http.StatusInternalServerError, "Failed Inserting to database | " + errInsert.Error()}
+		return utils.CustError{http.StatusInternalServerError, "Failed Inserting to database | " + errInsert.Error()}
 	}
 
 	// Nothing bad happened
-	return CustError{0, errorStr[0]}
+	return utils.CustError{0, errorStr[0]}
 }
 
 // UpdateCurr - Updates "target" currency with "curr"
-func (db *MongoDB) UpdateCurr(target string, curr interface{}) CustError {
+func (db *MongoDB) UpdateCurr(target string, curr interface{}) utils.CustError {
 	// Dial database
 	session, err := mgo.Dial(db.DatabaseURL)
 	if err != nil {
@@ -182,16 +180,16 @@ func (db *MongoDB) UpdateCurr(target string, curr interface{}) CustError {
 	errInsert := session.DB(db.DatabaseName).C(db.CurrCollName).Update(bson.M{"targetCurrency": target}, curr)
 	if errInsert != nil {
 		// Something went wrong! Inform the user!
-		return CustError{http.StatusBadRequest, "Failed Inserting to database | " + errInsert.Error()}
+		return utils.CustError{http.StatusBadRequest, "Failed Inserting to database | " + errInsert.Error()}
 	}
 
 	// Nothing bad happened
-	return CustError{0, errorStr[0]}
+	return utils.CustError{0, errorStr[0]}
 }
 
 // DelWebhook - Gets the curreny with the given target currency
 // if no entry is found with the given id, it returns an empty currency struct
-func (db *MongoDB) DelWebhook(id string) CustError {
+func (db *MongoDB) DelWebhook(id string) utils.CustError {
 	// Dial database
 	session, err := mgo.Dial(db.DatabaseURL)
 	if err != nil {
@@ -205,11 +203,11 @@ func (db *MongoDB) DelWebhook(id string) CustError {
 	errDel := session.DB(db.DatabaseName).C(db.CurrCollName).Remove(bson.M{"_id": id})
 	if errDel != nil {
 		// Something went wrong! Inform the user!
-		return CustError{http.StatusBadRequest, "Failed to find webhook with id: \"" + id + "\" in the database | " + errDel.Error()}
+		return utils.CustError{http.StatusBadRequest, "Failed to find webhook with id: \"" + id + "\" in the database | " + errDel.Error()}
 	}
 
 	// Nothing bad happened
-	return CustError{0, errorStr[0]}
+	return utils.CustError{0, errorStr[0]}
 }
 
 /*
