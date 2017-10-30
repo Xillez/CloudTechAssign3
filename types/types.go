@@ -1,4 +1,4 @@
-package test
+package types
 
 import "gopkg.in/mgo.v2/bson"
 
