@@ -16,7 +16,7 @@ import (
 
 	db "github.com/Xillez/CloudTechAssign2/db"
 	types "github.com/Xillez/CloudTechAssign2/types"
-	util "github.com/Xillez/CloudTechAssign2/util"
+	utils "github.com/Xillez/CloudTechAssign2/utils"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -42,9 +42,9 @@ func procGetWebHook(url string, w http.ResponseWriter) CustError {
 
 	validID, errReg := regexp.MatchString("^ObjectIdHex\u0028\"[0-9a-f]{24}\"\u0029$", splitURL[1])
 	if errReg != nil {
-		return util.CustError{http.StatusInternalServerError, errorStr[10] + ": \"" + splitURL[1] + "\""}
+		return utils.CustError{http.StatusInternalServerError, errorStr[10] + ": \"" + splitURL[1] + "\""}
 	} else if !validID {
-		return util.CustError{http.StatusNotAcceptable, errorStr[3] + ": Given webhook id is invalid!"}
+		return utils.CustError{http.StatusNotAcceptable, errorStr[3] + ": Given webhook id is invalid!"}
 	}
 
 	// Retrieve webhook from database
@@ -67,11 +67,11 @@ func procGetWebHook(url string, w http.ResponseWriter) CustError {
 		webhook.MaxValue,
 	})
 	if errEncode != nil {
-		return util.CustError{http.StatusInternalServerError, "Encoding failed! Error: " + errEncode.Error()}
+		return utils.CustError{http.StatusInternalServerError, "Encoding failed! Error: " + errEncode.Error()}
 	}
 
 	// Nothing bad happened
-	return util.CustError{0, errorStr[0]}
+	return utils.CustError{0, errorStr[0]}
 }
 
 func procAddWebHook(r *http.Request, w http.ResponseWriter) CustError {
@@ -82,21 +82,21 @@ func procAddWebHook(r *http.Request, w http.ResponseWriter) CustError {
 	// Decode request
 	errDec := json.NewDecoder(r.Body).Decode(&webhook)
 	if errDec != nil {
-		return util.CustError{http.StatusInternalServerError, "Webhook registration decoding failed!"}
+		return utils.CustError{http.StatusInternalServerError, "Webhook registration decoding failed!"}
 	}
 
 	// Validate vital data
 	if len(webhook.BaseCurrency) != 3 {
-		return util.CustError{http.StatusNotAcceptable, errorStr[3] + ": \"baseCurrency\" has to be 3 long!"}
+		return utils.CustError{http.StatusNotAcceptable, errorStr[3] + ": \"baseCurrency\" has to be 3 long!"}
 	}
 	if len(webhook.TargetCurrency) != 3 {
-		return util.CustError{http.StatusNotAcceptable, errorStr[3] + ": \"targetCurrency\" has to be 3 long!"}
+		return utils.CustError{http.StatusNotAcceptable, errorStr[3] + ": \"targetCurrency\" has to be 3 long!"}
 	}
 	if webhook.MinValue < 0 && webhook.MinValue > webhook.MaxValue {
-		return util.CustError{http.StatusNotAcceptable, errorStr[3] + ": \"minTriggerValue\" need to be between 0 - \"maxTriggerValue\""}
+		return utils.CustError{http.StatusNotAcceptable, errorStr[3] + ": \"minTriggerValue\" need to be between 0 - \"maxTriggerValue\""}
 	}
 	if webhook.MaxValue < webhook.MinValue {
-		return util.CustError{http.StatusNotAcceptable, errorStr[3] + ": \"maxTriggerValue\" has to be >= \"minTriggerValue\""}
+		return utils.CustError{http.StatusNotAcceptable, errorStr[3] + ": \"maxTriggerValue\" has to be >= \"minTriggerValue\""}
 	}
 
 	// Update all currencies, so their fresh for immediate viewing
@@ -123,7 +123,7 @@ func procAddWebHook(r *http.Request, w http.ResponseWriter) CustError {
 	fmt.Fprintf(w, webhookID.String())
 
 	// Nothing bad happened
-	return util.CustError{0, errorStr[0]}
+	return utils.CustError{0, errorStr[0]}
 }
 
 func procDelWebHook(url string, w http.ResponseWriter) CustError {
@@ -137,9 +137,9 @@ func procDelWebHook(url string, w http.ResponseWriter) CustError {
 	// Validate vital data
 	validID, errReg := regexp.MatchString("^ObjectIdHex\u0028\"[0-9a-f]{24}\"\u0029$", splitURL[1])
 	if errReg != nil {
-		return util.CustError{http.StatusInternalServerError, errorStr[10] + ": \"" + splitURL[1] + "\""}
+		return utils.CustError{http.StatusInternalServerError, errorStr[10] + ": \"" + splitURL[1] + "\""}
 	} else if !validID {
-		return util.CustError{http.StatusNotAcceptable, errorStr[3] + ": Given webhook id is invalid!"}
+		return utils.CustError{http.StatusNotAcceptable, errorStr[3] + ": Given webhook id is invalid!"}
 	}
 
 	// Try to delete webhook entry with given id
@@ -151,7 +151,7 @@ func procDelWebHook(url string, w http.ResponseWriter) CustError {
 	fmt.Fprintf(w, "Webhook deleted!")
 
 	// Nothing bad happened
-	return util.CustError{0, errorStr[0]}
+	return utils.CustError{0, errorStr[0]}
 }
 
 /* ---------- Latest Handler functions ---------- */
@@ -165,15 +165,15 @@ func procLatest(r *http.Request, w http.ResponseWriter) CustError {
 	errDec := json.NewDecoder(r.Body).Decode(&currReq)
 	if errDec != nil {
 		fmt.Println(errDec.Error())
-		return util.CustError{http.StatusInternalServerError, "Latest currency exchange request decoding failed!"}
+		return utils.CustError{http.StatusInternalServerError, "Latest currency exchange request decoding failed!"}
 	}
 
 	// Validate vital data
 	if len(currReq.BaseCurrency) != 3 {
-		return util.CustError{http.StatusNotAcceptable, errorStr[3] + ": \"baseCurrency\" has to be 3 long!"}
+		return utils.CustError{http.StatusNotAcceptable, errorStr[3] + ": \"baseCurrency\" has to be 3 long!"}
 	}
 	if len(currReq.TargetCurrency) != 3 {
-		return util.CustError{http.StatusNotAcceptable, errorStr[3] + ": \"targetCurrency\" has to be 3 long!"}
+		return utils.CustError{http.StatusNotAcceptable, errorStr[3] + ": \"targetCurrency\" has to be 3 long!"}
 	}
 
 	// Update all currencies, so their fresh for immediate viewing
@@ -188,7 +188,7 @@ func procLatest(r *http.Request, w http.ResponseWriter) CustError {
 	fmt.Fprintf(w, strconv.FormatFloat(currInfo.Rate, 'f', -1, 64))
 
 	// Nothing bad happened
-	return util.CustError{0, errorStr[0]}
+	return utils.CustError{0, errorStr[0]}
 
 }
 
@@ -202,13 +202,13 @@ func fetchAverage(baseCurr string, targetCurr string) (float64, CustError) {
 		date := time.Now().AddDate(0, 0, i).Format("yyyy-mm-dd")
 		err := fetchDecodedJSON(fixerURL+date+"?symbols="+baseCurr+","+targetCurr, curr)
 		if err.Status != 0 {
-			return 0, util.CustError{http.StatusInternalServerError, errorStr[1] + " | Error: Couldn't locate at part of the average! | url"}
+			return 0, utils.CustError{http.StatusInternalServerError, errorStr[1] + " | Error: Couldn't locate at part of the average! | url"}
 		}
 
 		avg += curr.Rates[targetCurr]
 	}
 
-	return avg / 7, util.CustError{0, errorStr[0]}
+	return avg / 7, utils.CustError{0, errorStr[0]}
 }
 
 func procAverage(r *http.Request, w http.ResponseWriter) CustError {
@@ -218,15 +218,15 @@ func procAverage(r *http.Request, w http.ResponseWriter) CustError {
 	// Decode request
 	errDec := json.NewDecoder(r.Body).Decode(&curr)
 	if errDec != nil {
-		return util.CustError{http.StatusInternalServerError, "Latest currency exchange request decoding failed!"}
+		return utils.CustError{http.StatusInternalServerError, "Latest currency exchange request decoding failed!"}
 	}
 
 	// Validate vital data
 	if len(curr.BaseCurrency) != 3 {
-		return util.CustError{http.StatusNotAcceptable, errorStr[3] + ": \"baseCurrency\" has to be 3 long!"}
+		return utils.CustError{http.StatusNotAcceptable, errorStr[3] + ": \"baseCurrency\" has to be 3 long!"}
 	}
 	if len(curr.TargetCurrency) != 3 {
-		return util.CustError{http.StatusNotAcceptable, errorStr[3] + ": \"targetCurrency\" has to be 3 long!"}
+		return utils.CustError{http.StatusNotAcceptable, errorStr[3] + ": \"targetCurrency\" has to be 3 long!"}
 	}
 
 	avg, err := fetchAverage(curr.BaseCurrency, curr.TargetCurrency)
@@ -237,7 +237,7 @@ func procAverage(r *http.Request, w http.ResponseWriter) CustError {
 	fmt.Fprintf(w, strconv.FormatFloat(avg, 'f', -1, 64))
 
 	// Nothing bad happened
-	return util.CustError{0, errorStr[0]}
+	return utils.CustError{0, errorStr[0]}
 }
 
 // HandlerRoot - Root path handler, handles registration, viewing and
