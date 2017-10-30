@@ -2,16 +2,6 @@ package types
 
 import "gopkg.in/mgo.v2/bson"
 
-// MongoDB stores the details of the DB connection.
-type MongoDB struct {
-	DatabaseURL  string
-	DatabaseName string
-	WebCollName  string
-	CurrCollName string
-}
-
-var db = &MongoDB{"mongodb://localhost", "Currencies", "webhook", "curr"}
-
 // WebhookInfo - Physical format of stored webhook info
 type WebhookInfo struct {
 	ID       bson.ObjectId `                       bson:"_id,omitempty"`

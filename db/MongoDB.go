@@ -9,6 +9,16 @@ import (
 	types "github.com/Xillez/CloudTechAssign2/types"
 )
 
+// MongoDB stores the details of the DB connection.
+type MongoDB struct {
+	DatabaseURL  string
+	DatabaseName string
+	WebCollName  string
+	CurrCollName string
+}
+
+var db = &MongoDB{"mongodb://localhost", "Currencies", "webhook", "curr"}
+
 // Init - initializes the mongodb database
 func (db *MongoDB) Init() error {
 	// Dial database
@@ -69,7 +79,7 @@ func (db *MongoDB) GetWebhook(id string, webhook *types.WebhookInfo) CustError {
 
 // GetCurrByTarget - Gets the currency with the given target currency
 // if no entry is found with the given id, it returns an error and ignores updating the given interface
-func (db *MongoDB) GetCurrByTarget(target string, curr *types.CurrencyInfo) CustError {
+func (db *MongoDB) GetCurrByTarget(target string, curr *CurrencyInfo) CustError {
 	// Dial database
 	session, err := mgo.Dial(db.DatabaseURL)
 	if err != nil {
@@ -92,7 +102,7 @@ func (db *MongoDB) GetCurrByTarget(target string, curr *types.CurrencyInfo) Cust
 
 // GetCurrByID - Gets the currency with the given id
 // if no entry is found with the given id, it returns an error and ignores updating the given interface
-func (db *MongoDB) GetCurrByID(id string, curr *types.CurrencyInfo) CustError {
+func (db *MongoDB) GetCurrByID(id string, curr *CurrencyInfo) CustError {
 	// Dial database
 	session, err := mgo.Dial(db.DatabaseURL)
 	if err != nil {
@@ -136,7 +146,7 @@ func (db *MongoDB) AddWebhook(webhook types.WebhookInfo) CustError {
 }
 
 // AddCurr - Adds "curr" to Currency collection
-func (db *MongoDB) AddCurr(curr types.CurrencyInfo) CustError {
+func (db *MongoDB) AddCurr(curr CurrencyInfo) CustError {
 	// Dial database
 	session, err := mgo.Dial(db.DatabaseURL)
 	if err != nil {
