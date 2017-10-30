@@ -17,6 +17,9 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+// FUCK MY LIFE AND FUCK GO'S BULLSHIT
+// I FUCKING LOVE GO
+
 //var baseURL = "https://api.github.com/repos/"
 var fixerURL = "https://api.fixer.io/"
 
