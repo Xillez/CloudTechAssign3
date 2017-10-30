@@ -5,6 +5,8 @@ import (
 
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+
+	types "github.com/Xillez/CloudTechAssign2/types"
 )
 
 // Init - initializes the mongodb database
@@ -44,7 +46,7 @@ func (db *MongoDB) Init() error {
 
 // GetWebhook - Gets the webhook with the given id
 // if no entry is found with the given id, it returns an empty webhook struct
-func (db *MongoDB) GetWebhook(id string, webhook *WebhookInfo) CustError {
+func (db *MongoDB) GetWebhook(id string, webhook *types.WebhookInfo) CustError {
 	// Dial database
 	session, err := mgo.Dial(db.DatabaseURL)
 	if err != nil {
@@ -67,7 +69,7 @@ func (db *MongoDB) GetWebhook(id string, webhook *WebhookInfo) CustError {
 
 // GetCurrByTarget - Gets the currency with the given target currency
 // if no entry is found with the given id, it returns an error and ignores updating the given interface
-func (db *MongoDB) GetCurrByTarget(target string, curr *CurrencyInfo) CustError {
+func (db *MongoDB) GetCurrByTarget(target string, curr *types.CurrencyInfo) CustError {
 	// Dial database
 	session, err := mgo.Dial(db.DatabaseURL)
 	if err != nil {
@@ -90,7 +92,7 @@ func (db *MongoDB) GetCurrByTarget(target string, curr *CurrencyInfo) CustError 
 
 // GetCurrByID - Gets the currency with the given id
 // if no entry is found with the given id, it returns an error and ignores updating the given interface
-func (db *MongoDB) GetCurrByID(id string, curr *CurrencyInfo) CustError {
+func (db *MongoDB) GetCurrByID(id string, curr *types.CurrencyInfo) CustError {
 	// Dial database
 	session, err := mgo.Dial(db.DatabaseURL)
 	if err != nil {
@@ -112,7 +114,7 @@ func (db *MongoDB) GetCurrByID(id string, curr *CurrencyInfo) CustError {
 }
 
 // AddWebhook - Adds "webhook" to Webhook collection
-func (db *MongoDB) AddWebhook(webhook WebhookInfo) CustError {
+func (db *MongoDB) AddWebhook(webhook types.WebhookInfo) CustError {
 	// Dial database
 	session, err := mgo.Dial(db.DatabaseURL)
 	if err != nil {
@@ -134,7 +136,7 @@ func (db *MongoDB) AddWebhook(webhook WebhookInfo) CustError {
 }
 
 // AddCurr - Adds "curr" to Currency collection
-func (db *MongoDB) AddCurr(curr CurrencyInfo) CustError {
+func (db *MongoDB) AddCurr(curr types.CurrencyInfo) CustError {
 	// Dial database
 	session, err := mgo.Dial(db.DatabaseURL)
 	if err != nil {
