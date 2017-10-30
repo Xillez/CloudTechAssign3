@@ -20,71 +20,6 @@ import (
 //var baseURL = "https://api.github.com/repos/"
 var fixerURL = "https://api.fixer.io/"
 
-// RunningTest tells the program wether we're testing or not
-var RunningTest = false
-
-// WebhookReg - Contains all nessecary info to invoke a webhook
-type WebhookReg struct {
-	URL            string  `json:"webhookURL"`
-	BaseCurrency   string  `json:"baseCurrency"`
-	TargetCurrency string  `json:"targetCurrency"`
-	MinValue       float64 `json:"minTriggerValue"`
-	MaxValue       float64 `json:"maxTriggerValue"`
-}
-
-// WebhookInv - Payload for invoking the webhook
-type WebhookInv struct {
-	BaseCurrency   string  `json:"baseCurrency"`
-	TargetCurrency string  `json:"targetCurrency"`
-	CurrentRate    float64 `json:"currentRate"`
-	MinValue       float64 `json:"minTriggerValue"`
-	MaxValue       float64 `json:"maxTriggerValue"`
-}
-
-// CurrencyReq - Used variously, requesting exchange, running average, etc.
-type CurrencyReq struct {
-	BaseCurrency   string `json:"baseCurrency"`
-	TargetCurrency string `json:"targetCurrency"`
-}
-
-// LatestCurrResp - Used to store the internal data of response from api.fixer.io/latest
-type LatestCurrResp struct {
-	BaseCurrency string             `json:"base"`
-	Date         string             `json:"date"` // Date format yyyy-mm-dd
-	Rates        map[string]float64 `json:"rates"`
-}
-
-var db *MongoDB
-
-func currUpdate() CustError {
-	currResp := LatestCurrResp{}
-	keys := []string{}
-
-	// Fetch latest currencies and decode them
-	errCurr := fetchDecodedJSON(fixerURL+"/latest?base=EUR", currResp)
-	if errCurr.Status != 0 {
-		return errCurr
-	}
-
-	// Extract the keys so we can loop through them
-	// map[string]float64 to []string convertion
-	for k := range currResp.Rates {
-		keys = append(keys, k)
-	}
-
-	for i := 0; i < len(currResp.Rates); i++ {
-		// Update the target currency with it corresponding value
-		errUpdate := db.UpdateCurr(keys[0], bson.M{"$set": bson.M{"rate": currResp.Rates[keys[0]]}})
-		// Return imidietly any arrers occur
-		if errUpdate.Status != 0 {
-			return errUpdate
-		}
-	}
-
-	// Nothing bad happened
-	return CustError{0, errorStr[0]}
-}
-
 /* ---------- Root Handler functions ---------- */
 
 func procGetWebHook(url string, w http.ResponseWriter) CustError {
@@ -106,13 +41,13 @@ func procGetWebHook(url string, w http.ResponseWriter) CustError {
 	}
 
 	// Retrieve webhook from database
-	err = db.GetWebhook(splitURL[1], &webhook)
+	err = db.db.GetWebhook(splitURL[1], &webhook)
 	if err.Status != 0 {
 		return err
 	}
 
 	// Retrieve related currency
-	err = db.GetCurrByID(splitURL[1], &curr)
+	err = db.db.GetCurrByID(splitURL[1], &curr)
 	if err.Status != 0 {
 		return err
 	}
@@ -161,14 +96,14 @@ func procAddWebHook(r *http.Request, w http.ResponseWriter) CustError {
 	currUpdate()
 
 	// Retrieve currency info
-	errRetCurr := db.GetCurrByTarget(webhook.TargetCurrency, &curr)
+	errRetCurr := db.db.GetCurrByTarget(webhook.TargetCurrency, &curr)
 	if errRetCurr.Status != 0 {
 		return errRetCurr
 	}
 
 	webhookID := bson.NewObjectId()
 	// Add webhook info to database
-	err := db.AddWebhook(WebhookInfo{
+	err := db.db.AddWebhook(WebhookInfo{
 		webhookID,
 		webhook.URL,
 		curr.ID,
@@ -201,7 +136,7 @@ func procDelWebHook(url string, w http.ResponseWriter) CustError {
 	}
 
 	// Try to delete webhook entry with given id
-	errDel := db.DelWebhook(splitURL[1])
+	errDel := db.db.DelWebhook(splitURL[1])
 	if errDel.Status != 0 {
 		return errDel
 	}
@@ -238,7 +173,7 @@ func procLatest(r *http.Request, w http.ResponseWriter) CustError {
 	currUpdate()
 
 	// Retrieve currency info
-	errRetCurr := db.GetCurrByTarget(currReq.TargetCurrency, &currInfo)
+	errRetCurr := db.db.GetCurrByTarget(currReq.TargetCurrency, &currInfo)
 	if errRetCurr.Status != 0 {
 		return errRetCurr
 	}
@@ -363,8 +298,7 @@ func handlerEvalTrigger(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	db = &MongoDB{"mongodb://localhost", "Currencies", "webhook", "curr"}
-	err := db.Init()
+	err := db.db.Init()
 	if err != nil {
 		panic(err)
 	}

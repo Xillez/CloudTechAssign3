@@ -1,4 +1,4 @@
-package main
+package db
 
 import (
 	"net/http"
@@ -6,31 +6,6 @@ import (
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
-
-// MongoDB stores the details of the DB connection.
-type MongoDB struct {
-	DatabaseURL  string
-	DatabaseName string
-	WebCollName  string
-	CurrCollName string
-}
-
-// WebhookInfo - Physical format of stored webhook info
-type WebhookInfo struct {
-	ID       bson.ObjectId `                       bson:"_id,omitempty"`
-	URL      string        `json:"webhookURL"      bson:"webhookURL"`
-	CurrID   bson.ObjectId `                       bson:"currId"`
-	MinValue float64       `json:"minTriggerValue" bson:"minTriggerValue"`
-	MaxValue float64       `json:"maxTriggerValue" bson:"maxTriggerValue"`
-}
-
-// CurrencyInfo - Physical format of stored currency info
-type CurrencyInfo struct {
-	ID             bson.ObjectId `                       bson:"_id,omitempty"`
-	BaseCurrency   string        `json:"baseCurrency"    bson:"baseCurrency"`
-	TargetCurrency string        `json:"targetCurrency"  bson:"targetCurrency"`
-	Rate           float64       `json:"rate"            bson:"rate"`
-}
 
 // Init - initializes the mongodb database
 func (db *MongoDB) Init() error {
