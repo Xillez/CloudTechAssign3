@@ -4,6 +4,8 @@ MAINTAINER Edward Muller <edward@heroku.com>
 
 WORKDIR "/opt"
 
-ADD .docker_build/Assignment4 /opt/bin/Assignment4
+ADD .docker_build/cmd/web/web /opt/bin/web
+ADD .docker_build/cmd/clock/clock /opt/bin/web
 
-CMD ["/opt/bin/Assignment4"]
+CMD ["/opt/bin/web"]
+CMD ["/opt/bin/clock"]

@@ -2,16 +2,21 @@ package utils
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strings"
 )
 
-var errorStr = []string{
+// FixerURL - Root address to fixer api
+var FixerURL = "https://api.fixer.io"
+
+// ErrorStr - Premade error messages for easy use
+var ErrorStr = []string{
 	"No Error",
 	"Invalid Server",
 	"Status Code Out Of Bounds",
 	"Invalid Vital Data",
-	"Faliure Reading File",
+	"Faliure Reading From Database",
 	"Faliure Unmarshaling",
 	"Invalid URL",
 	"Faliure Encoding",
@@ -26,46 +31,61 @@ type CustError struct {
 	Msg    string
 }
 
+var Warn = "[WARNING]: "
+var Error = "[ERROR]: "
+var Info = "[INFO]: "
+
 // CheckPrintErr - Checks for error, print it if any and returns true, otherwise returns false
-func checkPrintErr(err CustError, w http.ResponseWriter) bool {
+func CheckPrintErr(err CustError, w http.ResponseWriter) bool {
 	if err.Status != 0 {
+		log.Println(Info + "Found error to user, displaying...")
 		http.Error(w, http.StatusText(err.Status)+" | Program error: "+err.Msg, err.Status)
 		return true
 	}
 
 	// Say that every thing went ok
-	w.WriteHeader(http.StatusOK)
+	//log.Println(Info + "Found no error to report")
 	return false
 }
 
-// Get the URL given to server and splits it for processing
-func getSplitURL(url string, expectedNrSplits int) ([]string, CustError) {
+// GetSplitURL - Get the URL given to server and splits it for processing
+func GetSplitURL(url string, expectedNrSplits int) ([]string, CustError) {
+	log.Println(Info + "Splitting URL...")
 	parts := strings.Split(url, "/")
 
 	// Missing a field/part of URL
 	if len(parts) != expectedNrSplits {
-		return nil, CustError{http.StatusBadRequest, errorStr[6]}
+		log.Println(Error + "Splitting resulted in not expected nr components!")
+		return nil, CustError{http.StatusBadRequest, ErrorStr[6]}
 	}
 
+	log.Println(Info + "Splitting URL finished successfully")
 	// Nothing bad happened
-	return parts, CustError{0, errorStr[0]}
+	return parts, CustError{0, ErrorStr[0]}
 }
 
-// Fetches and decodes json into given variable
-func fetchDecodedJSON(url string, updated interface{}) CustError {
+// FetchDecodedJSON - Fetches and decodes json into given variable
+func FetchDecodedJSON(url string, updated interface{}) CustError {
+	log.Println(Info + "Getting from URL: " + url)
 	resp, err := http.Get(url)
 	if err != nil {
-		return CustError{http.StatusBadRequest, errorStr[6]}
+		// Somehting went wrong! Inform the user!
+		log.Println(Error + "Couldn't find the URL user requested!")
+		return CustError{http.StatusBadRequest, ErrorStr[6]}
 	}
 
 	// Decode
+	log.Println(Info + "Decoding request into given interface")
 	err = json.NewDecoder(resp.Body).Decode(&updated)
 	if err != nil {
-		return CustError{http.StatusInternalServerError, errorStr[8]}
+		// Somehting went wrong! Inform the user!
+		log.Println(Info + "Decoding failed! Inform User!")
+		return CustError{http.StatusInternalServerError, ErrorStr[8]}
 	}
 
+	log.Println(Info + "Fetching and decoding URL finished successfully")
 	// Nothing bad happened
-	return CustError{0, errorStr[0]}
+	return CustError{0, ErrorStr[0]}
 }
 
 // CheckValidResponse - Checks the response if StatusCode er 2XX and Server is "http://api.github.com"
@@ -83,5 +103,5 @@ func fetchDecodedJSON(url string, updated interface{}) CustError {
 	}
 
 	// Nothing bad happened
-	return CustError{0, errorStr[0]}
+	return CustError{0, ErrorStr[0]}
 }*/

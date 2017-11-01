@@ -3,241 +3,300 @@
 // 			- Zohaib Butt
 // 			- Eldar Hauge Torkelsen
 
+// Id of inserted test webhook: 59f9c88e322243285490e1dc
+
 package main
 
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"regexp"
 	"strconv"
 	"time"
 
-	db "github.com/Xillez/CloudTechAssign2/db"
-	types "github.com/Xillez/CloudTechAssign2/types"
-	utils "github.com/Xillez/CloudTechAssign2/utils"
+	"Assignment2/mongodb"
+	"Assignment2/types"
+	"Assignment2/utils"
 
 	"gopkg.in/mgo.v2/bson"
 )
 
-// FUCK MY LIFE AND FUCK GO'S BULLSHIT
-// I FUCKING LOVE GO
+var Warn = "[WARNING]: "
+var Error = "[ERROR]: "
+var Info = "[INFO]: "
 
-//var baseURL = "https://api.github.com/repos/"
-var fixerURL = "https://api.fixer.io/"
+//var db = &mongodb.MongoDB{"mongodb://localhost", "Currencies", "webhook", "curr"}
+var db = &mongodb.MongoDB{"mongodb://admin:admin@ds151452.mlab.com:51452/webhook_curr", "webhook_curr", "webhook", "curr"}
 
 /* ---------- Root Handler functions ---------- */
 
-func procGetWebHook(url string, w http.ResponseWriter) CustError {
+func procGetWebHook(url string, w http.ResponseWriter) utils.CustError {
+	log.Println(Info + "--------------- Got GetWebhook Request ---------------")
 	http.Header.Add(w.Header(), "content-type", "application/json")
 	webhook := types.WebhookInfo{}
-	curr := types.CurrencyInfo{}
 
-	// Slip
-	splitURL, err := getSplitURL(url, 2)
+	log.Println(Info + "Splitting incomming URL")
+	// Split url into usable components
+	splitURL, err := utils.GetSplitURL(url, 3)
 	if err.Status != 0 {
 		return err
 	}
 
-	validID, errReg := regexp.MatchString("^ObjectIdHex\u0028\"[0-9a-f]{24}\"\u0029$", splitURL[1])
+	log.Println(Info + "Validating GetWebhook request")
+	// Validate user input just in case of attack
+	validID, errReg := regexp.MatchString("^[0-9a-f]{24}$", splitURL[2])
 	if errReg != nil {
-		return utils.CustError{http.StatusInternalServerError, errorStr[10] + ": \"" + splitURL[1] + "\""}
+		// Somehting went wrong! Inform the user!
+		log.Println(Warn + "Validating failed! Informing user!")
+		return utils.CustError{http.StatusInternalServerError, utils.ErrorStr[10] + ": \"" + splitURL[2] + "\""}
 	} else if !validID {
-		return utils.CustError{http.StatusNotAcceptable, errorStr[3] + ": Given webhook id is invalid!"}
+		// Somehting went wrong! Inform the user!
+		log.Println(Warn + "Validating failed! Informing user!")
+		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": Given webhook id is invalid!"}
 	}
 
+	log.Println(Info + "Trying to get requested webhook")
 	// Retrieve webhook from database
-	err = db.db.GetWebhook(splitURL[1], &webhook)
+	err = db.GetWebhook(splitURL[2], &webhook)
 	if err.Status != 0 {
 		return err
 	}
 
-	// Retrieve related currency
-	err = db.db.GetCurrByID(splitURL[1], &curr)
-	if err.Status != 0 {
-		return err
-	}
-
-	errEncode := json.NewEncoder(w).Encode(&WebhookReg{
+	// Convert WebhookInfo over to WebhookDisp format
+	display := types.WebhookDisp{
 		webhook.URL,
-		curr.BaseCurrency,
-		curr.TargetCurrency,
+		webhook.BaseCurrency,
+		webhook.TargetCurrency,
 		webhook.MinValue,
 		webhook.MaxValue,
-	})
-	if errEncode != nil {
-		return utils.CustError{http.StatusInternalServerError, "Encoding failed! Error: " + errEncode.Error()}
 	}
 
+	log.Println(Info + "Encoding webhook to browser")
+	// Dump the fetched webhook to browser
+	errEncode := json.NewEncoder(w).Encode(&display)
+	if errEncode != nil {
+		// Somehting went wrong! Inform the user!
+		return utils.CustError{http.StatusInternalServerError, "Encoding failed!"}
+	}
+
+	log.Println(Info + "GetWebhook request finnished successfully")
 	// Nothing bad happened
-	return utils.CustError{0, errorStr[0]}
+	return utils.CustError{0, utils.ErrorStr[0]}
 }
 
-func procAddWebHook(r *http.Request, w http.ResponseWriter) CustError {
+func procAddWebHook(r *http.Request, w http.ResponseWriter) utils.CustError {
+	log.Println(Info + "--------------- Got AddWebhook Request ---------------")
 	http.Header.Add(w.Header(), "content-type", "text/plain")
-	webhook := types.WebhookReg{}
-	curr := types.CurrencyInfo{}
+	webhook := types.WebhookInfo{}
 
 	// Decode request
+	log.Println(Info + "Decoding AddWebhook request")
 	errDec := json.NewDecoder(r.Body).Decode(&webhook)
 	if errDec != nil {
+		// Somehting went wrong! Inform the user!
 		return utils.CustError{http.StatusInternalServerError, "Webhook registration decoding failed!"}
 	}
 
+	log.Println(Info + "Validating data from recieved AddWebhook request")
 	// Validate vital data
-	if len(webhook.BaseCurrency) != 3 {
-		return utils.CustError{http.StatusNotAcceptable, errorStr[3] + ": \"baseCurrency\" has to be 3 long!"}
+	if webhook.BaseCurrency != "EUR" {
+		log.Println(Warn + "Validation failed! Informing user!")
+		// Somehting went wrong! Inform the user!
+		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": \"baseCurrency\" has to be \"EUR\"!"}
 	}
 	if len(webhook.TargetCurrency) != 3 {
-		return utils.CustError{http.StatusNotAcceptable, errorStr[3] + ": \"targetCurrency\" has to be 3 long!"}
+		log.Println(Warn + "Validating failed! Informing user!")
+		// Somehting went wrong! Inform the user!
+		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": \"targetCurrency\" has to be 3 long!"}
 	}
 	if webhook.MinValue < 0 && webhook.MinValue > webhook.MaxValue {
-		return utils.CustError{http.StatusNotAcceptable, errorStr[3] + ": \"minTriggerValue\" need to be between 0 - \"maxTriggerValue\""}
+		log.Println(Warn + "Validating failed! Informing user!")
+		// Somehting went wrong! Inform the user!
+		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": \"minTriggerValue\" need to be between 0 - \"maxTriggerValue\""}
 	}
 	if webhook.MaxValue < webhook.MinValue {
-		return utils.CustError{http.StatusNotAcceptable, errorStr[3] + ": \"maxTriggerValue\" has to be >= \"minTriggerValue\""}
+		log.Println(Warn + "Validating failed! Informing user!")
+		// Somehting went wrong! Inform the user!
+		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": \"maxTriggerValue\" has to be >= \"minTriggerValue\""}
 	}
 
-	// Update all currencies, so their fresh for immediate viewing
-	currUpdate()
-
-	// Retrieve currency info
-	errRetCurr := db.db.GetCurrByTarget(webhook.TargetCurrency, &curr)
-	if errRetCurr.Status != 0 {
-		return errRetCurr
-	}
-
+	log.Println(Info + "converting retrieved webhook data into storage format")
 	webhookID := bson.NewObjectId()
 	// Add webhook info to database
-	err := db.db.AddWebhook(WebhookInfo{
+	err := db.AddWebhook(types.WebhookInfo{
 		webhookID,
 		webhook.URL,
-		curr.ID,
+		webhook.BaseCurrency,
+		webhook.TargetCurrency,
 		webhook.MinValue,
 		webhook.MaxValue})
 	if err.Status != 0 {
+		fmt.Println("Error: " + strconv.Itoa(err.Status) + " | " + err.Msg)
 		return err
 	}
 
-	fmt.Fprintf(w, webhookID.String())
+	log.Println(Info + "Writing stored entry id to browser")
+	fmt.Fprintf(w, webhookID.Hex())
 
+	log.Println(Info + "AddWebhook request finished successfully!")
 	// Nothing bad happened
-	return utils.CustError{0, errorStr[0]}
+	return utils.CustError{0, utils.ErrorStr[0]}
 }
 
-func procDelWebHook(url string, w http.ResponseWriter) CustError {
+func procDelWebHook(url string, w http.ResponseWriter) utils.CustError {
+	log.Println(Info + "--------------- Got DelWebhook Request ---------------")
 	http.Header.Add(w.Header(), "content-type", "text/plain")
+
 	// Split url to extract id string
-	splitURL, err := getSplitURL(url, 2)
+	log.Println(Info + "Splitting incoming URl")
+	splitURL, err := utils.GetSplitURL(url, 3)
 	if err.Status != 0 {
 		return err
 	}
 
 	// Validate vital data
-	validID, errReg := regexp.MatchString("^ObjectIdHex\u0028\"[0-9a-f]{24}\"\u0029$", splitURL[1])
+	log.Println(Info + "Validating DelWebhook request data")
+	validID, errReg := regexp.MatchString("^[0-9a-f]{24}$", splitURL[2])
 	if errReg != nil {
-		return utils.CustError{http.StatusInternalServerError, errorStr[10] + ": \"" + splitURL[1] + "\""}
+		log.Println(Warn + "Validation failed! Informing user!")
+		// Somehting went wrong! Inform the user!
+		return utils.CustError{http.StatusInternalServerError, utils.ErrorStr[10] + ": \"" + splitURL[2] + "\""}
 	} else if !validID {
-		return utils.CustError{http.StatusNotAcceptable, errorStr[3] + ": Given webhook id is invalid!"}
+		log.Println(Warn + "Validation failed! Informing user!")
+		// Somehting went wrong! Inform the user!
+		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": Given webhook id is invalid!"}
 	}
 
+	log.Println(Info + "Deleting requested webhook")
 	// Try to delete webhook entry with given id
-	errDel := db.db.DelWebhook(splitURL[1])
+	errDel := db.DelWebhook(splitURL[2])
 	if errDel.Status != 0 {
 		return errDel
 	}
 
+	log.Println(Info + "Informing user that the webhook was deleted")
 	fmt.Fprintf(w, "Webhook deleted!")
 
+	log.Println(Info + "DelWebhook request finished successfully")
 	// Nothing bad happened
-	return utils.CustError{0, errorStr[0]}
+	return utils.CustError{0, utils.ErrorStr[0]}
 }
 
 /* ---------- Latest Handler functions ---------- */
 
-func procLatest(r *http.Request, w http.ResponseWriter) CustError {
+func procLatest(r *http.Request, w http.ResponseWriter) utils.CustError {
+	log.Println(Info + "--------------- Got Latest Currency Request ---------------")
 	http.Header.Add(w.Header(), "content-type", "text/plain")
 	currReq := types.CurrencyReq{}
 	currInfo := types.CurrencyInfo{}
 
 	// Decode request
+	log.Println(Info + "Decoding latest request body")
 	errDec := json.NewDecoder(r.Body).Decode(&currReq)
 	if errDec != nil {
-		fmt.Println(errDec.Error())
+		// Somehting went wrong! Inform the user!
 		return utils.CustError{http.StatusInternalServerError, "Latest currency exchange request decoding failed!"}
 	}
 
 	// Validate vital data
-	if len(currReq.BaseCurrency) != 3 {
-		return utils.CustError{http.StatusNotAcceptable, errorStr[3] + ": \"baseCurrency\" has to be 3 long!"}
+	log.Println(Info + "Validating data from latest request")
+	if currReq.BaseCurrency != "EUR" {
+		log.Println(Warn + "Validation failed! Informing user!")
+		// Somehting went wrong! Inform the user!
+		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": \"baseCurrency\" has to be \"EUR\"!"}
 	}
 	if len(currReq.TargetCurrency) != 3 {
-		return utils.CustError{http.StatusNotAcceptable, errorStr[3] + ": \"targetCurrency\" has to be 3 long!"}
+		// Somehting went wrong! Inform the user!
+		log.Println(Warn + "Validation failed! Informing user!")
+		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": \"targetCurrency\" has to be 3 long!"}
 	}
 
-	// Update all currencies, so their fresh for immediate viewing
-	currUpdate()
-
-	// Retrieve currency info
-	errRetCurr := db.db.GetCurrByTarget(currReq.TargetCurrency, &currInfo)
+	log.Println(Info + "Getting currency from database")
+	// Retrieve currency info with current date, if error, try with yesterday's dates
+	errRetCurr := db.GetCurrByDate(time.Now().Format("2006-01-02"), &currInfo)
 	if errRetCurr.Status != 0 {
-		return errRetCurr
+		log.Println(Warn + "Failed getting for current day, trying to get from yester day instead (it's before 17:00)")
+		errRetCurr := db.GetCurrByDate(time.Now().AddDate(0, 0, -1).Format("2006-01-02"), &currInfo)
+		if errRetCurr.Status != 0 {
+			return errRetCurr
+		}
 	}
 
-	fmt.Fprintf(w, strconv.FormatFloat(currInfo.Rate, 'f', -1, 64))
+	log.Println(Info + "Writing the latest rate of the requested currency")
+	fmt.Fprintf(w, strconv.FormatFloat(currInfo.Rates[currReq.TargetCurrency], 'f', -1, 64))
 
+	log.Println(Info + "Latest request finished successfully")
 	// Nothing bad happened
-	return utils.CustError{0, errorStr[0]}
+	return utils.CustError{0, utils.ErrorStr[0]}
 
 }
 
 /* ---------- Average Handler functions ---------- */
 
-func fetchAverage(baseCurr string, targetCurr string) (float64, CustError) {
-	curr := types.LatestCurrResp{}
+func fetchAverage(baseCurr string, targetCurr string) (float64, utils.CustError) {
+	curr := []types.CurrencyInfo{}
 	avg := 0.0
 
-	for i := 0; i > -7; i-- {
-		date := time.Now().AddDate(0, 0, i).Format("yyyy-mm-dd")
-		err := fetchDecodedJSON(fixerURL+date+"?symbols="+baseCurr+","+targetCurr, curr)
-		if err.Status != 0 {
-			return 0, utils.CustError{http.StatusInternalServerError, errorStr[1] + " | Error: Couldn't locate at part of the average! | url"}
-		}
-
-		avg += curr.Rates[targetCurr]
+	// Get all 3 currency documents
+	log.Println(Info + "Trying to get all currencies from databse")
+	err := db.GetAllCurr(&curr)
+	if err.Status != 0 {
+		return 0.0, utils.CustError{http.StatusInternalServerError, utils.ErrorStr[1] + " | Error: Couldn't locate a currency for the average!"}
 	}
 
-	return avg / 7, utils.CustError{0, errorStr[0]}
+	// Add up rates for target currency for averaging
+	log.Println(Info + "Adding all " + strconv.Itoa(len(curr)) + " day of rates for TargetCurrency")
+	for i := 0; i < len(curr); i++ {
+		avg += curr[i].Rates[targetCurr]
+	}
+
+	log.Println(Info + "Averaging su??????????????????????????????????????????????????????????????????+")
+	// Nothing bad happened
+	return avg / float64(len(curr)), utils.CustError{0, utils.ErrorStr[0]}
 }
 
-func procAverage(r *http.Request, w http.ResponseWriter) CustError {
+func procAverage(r *http.Request, w http.ResponseWriter) utils.CustError {
+	log.Println(Info + "--------------- Got Average Request ---------------")
 	http.Header.Add(w.Header(), "content-type", "text/plain")
 	curr := types.CurrencyReq{}
 
 	// Decode request
+	log.Println(Info + "Decode averge request data")
 	errDec := json.NewDecoder(r.Body).Decode(&curr)
 	if errDec != nil {
-		return utils.CustError{http.StatusInternalServerError, "Latest currency exchange request decoding failed!"}
+		log.Println(Error + "Decoding failed, Informing user!")
+		// Somehting went wrong! Inform the user!
+		return utils.CustError{http.StatusInternalServerError, "Failed!"}
 	}
 
 	// Validate vital data
-	if len(curr.BaseCurrency) != 3 {
-		return utils.CustError{http.StatusNotAcceptable, errorStr[3] + ": \"baseCurrency\" has to be 3 long!"}
+	log.Println(Info + "Validating data")
+	if curr.BaseCurrency != "EUR" {
+		log.Println(Warn + "Validation failed! Informing user!")
+		// Somehting went wrong! Inform the user!
+		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": \"baseCurrency\" has to be \"EUR\"!"}
 	}
 	if len(curr.TargetCurrency) != 3 {
-		return utils.CustError{http.StatusNotAcceptable, errorStr[3] + ": \"targetCurrency\" has to be 3 long!"}
+		// Somehting went wrong! Inform the user!
+		log.Println(Warn + "Validation failed! Informing user!")
+		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": \"targetCurrency\" has to be 3 long!"}
 	}
 
+	log.Println(Info + "Fetching average")
 	avg, err := fetchAverage(curr.BaseCurrency, curr.TargetCurrency)
 	if err.Status != 0 {
 		return err
 	}
 
+	log.Println(Info + "Writing average to browser")
 	fmt.Fprintf(w, strconv.FormatFloat(avg, 'f', -1, 64))
 
 	// Nothing bad happened
-	return utils.CustError{0, errorStr[0]}
+	log.Println(Info + "Average finished successfully")
+	return utils.CustError{0, utils.ErrorStr[0]}
 }
 
 // HandlerRoot - Root path handler, handles registration, viewing and
@@ -245,19 +304,19 @@ func procAverage(r *http.Request, w http.ResponseWriter) CustError {
 func handlerRoot(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		if checkPrintErr(procGetWebHook(r.URL.Path, w), w) {
+		if utils.CheckPrintErr(procGetWebHook(r.URL.Path, w), w) {
 			return
 		}
 	case "POST":
-		if checkPrintErr(procAddWebHook(r, w), w) {
+		if utils.CheckPrintErr(procAddWebHook(r, w), w) {
 			return
 		}
 	case "DELETE":
-		if checkPrintErr(procDelWebHook(r.URL.Path, w), w) {
+		if utils.CheckPrintErr(procDelWebHook(r.URL.Path, w), w) {
 			return
 		}
 	default:
-		checkPrintErr(CustError{http.StatusBadRequest, errorStr[9]}, w)
+		utils.CheckPrintErr(utils.CustError{http.StatusBadRequest, utils.ErrorStr[9]}, w)
 		return
 	}
 }
@@ -266,49 +325,45 @@ func handlerRoot(w http.ResponseWriter, r *http.Request) {
 func handlerLatest(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
-		if checkPrintErr(procLatest(r, w), w) {
+		if utils.CheckPrintErr(procLatest(r, w), w) {
 			return
 		}
 	default:
-		checkPrintErr(CustError{http.StatusNotImplemented, errorStr[9]}, w)
+		utils.CheckPrintErr(utils.CustError{http.StatusNotImplemented, utils.ErrorStr[9]}, w)
 		return
 	}
 }
 
-// HandlerAverage - 7-day Average Currency Exchange handler
+// HandlerAverage - 3-day Average Currency Exchange handler
 func handlerAverage(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
-		if checkPrintErr(procAverage(r, w), w) {
+		if utils.CheckPrintErr(procAverage(r, w), w) {
 			return
 		}
 	default:
-		checkPrintErr(CustError{http.StatusNotImplemented, errorStr[9]}, w)
+		utils.CheckPrintErr(utils.CustError{http.StatusNotImplemented, utils.ErrorStr[9]}, w)
 		return
 	}
 }
 
 // HandlerEvalTrigger - Evaluation Trigger handler, used when service is evaluated
 func handlerEvalTrigger(w http.ResponseWriter, r *http.Request) {
-	switch RunningTest {
-	case false:
-		// Get general repo data
-		/*if checkPrintErr(fetchDecodedJSON(baseURL+parts[4]+"/"+parts[5], &project), w) {
-			return
-		}*/
-	case true:
-		// Load general testrepo data
-		/*if checkPrintErr(openMainJSON(&project), w) {
-			return
-		}*/
+	switch r.Method {
+	case "GET":
+		db.InvokeWebhooks(false)
+	default:
+		utils.CheckPrintErr(utils.CustError{http.StatusNotImplemented, utils.ErrorStr[9]}, w)
+		return
 	}
 }
 
 func main() {
-	err := db.db.Init()
+	err := db.Init()
 	if err != nil {
 		panic(err)
 	}
+
 	// Registration of webhhooks goes over "/root"
 	// While viewing and deletion of webhooks goes over "/root/"
 	http.HandleFunc("/root", handlerRoot)
