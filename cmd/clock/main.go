@@ -17,12 +17,14 @@ var db = &mongodb.MongoDB{"mongodb://admin:admin@ds151452.mlab.com:51452/webhook
 
 func main() {
 
-	//dayUpdated := time.Now().Format("2006-01-02")
+	dayUpdated := time.Now().Format("2006-01-02")
 	for true /*dayUpdated != time.Now().Format("2006-01-02")*/ {
-		log.Println(Info + "--------------- Updating currency ---------------")
-		db.UpdateCurr()
-		log.Println(Info + "--------------- Invoking webhooks ---------------")
-		db.InvokeWebhooks(true)
+		if dayUpdated != time.Now().Format("2006-01-02") {
+			log.Println(Info + "--------------- Updating currency ---------------")
+			db.UpdateCurr()
+			log.Println(Info + "--------------- Invoking webhooks ---------------")
+			db.InvokeWebhooks(true)
+		}
 
 		log.Println(Info + "--------------- Sleeping ---------------")
 		timeLoc, _ := time.LoadLocation("CET")
