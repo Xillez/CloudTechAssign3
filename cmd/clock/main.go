@@ -22,6 +22,7 @@ func main() {
 	durToSleep := time.Duration(0)
 	for true {
 		if dayUpdated != time.Now().Format("2006-01-02") && !(time.Now().Hour() < 17) {
+			didUpdate = false
 			log.Println(Info + "--------------- Updating currency ---------------")
 			db.UpdateCurr()
 			log.Println(Info + "--------------- Invoking webhooks ---------------")
