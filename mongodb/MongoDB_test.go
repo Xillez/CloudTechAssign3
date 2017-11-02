@@ -158,15 +158,12 @@ func Test_Pos_GetAllWebhooks(t *testing.T) {
 	}
 
 	// Fetch the added webhook
-	errGet := testdb.GetAllWebhooks(fetchedWebhook)
+	errGet := testdb.GetAllWebhooks(&fetchedWebhook)
 	if errGet.Status != 0 {
 		t.Error("GetWebhook function got an error: " + strconv.Itoa(errGet.Status) + " | " + errGet.Msg)
 	}
 
-	count, errCount := session.DB(testdb.DatabaseURL).C(testdb.WebCollName).Count()
-	if errCount != nil {
-		t.Error("Failed counting elements in coll: " + testdb.WebCollName + " in database | Error: " + errCount.Error())
-	}
+	count := len(fetchedWebhook)
 
 	if count != 1 {
 		t.Error("Failed to get expected nr of elements: " + strconv.Itoa(count) + " | Expected 1!")
@@ -203,10 +200,7 @@ func Test_Pos_GetAllCurr(t *testing.T) {
 		t.Error("GetCurrByDate function got an error: " + strconv.Itoa(errGet.Status) + " | " + errGet.Msg)
 	}
 
-	count, errCount := session.DB(testdb.DatabaseURL).C(testdb.CurrCollName).Count()
-	if errCount != nil {
-		t.Error("Failed counting elements in coll: " + testdb.CurrCollName + " in database | Error: " + errCount.Error())
-	}
+	count := len(fetchedCurrency)
 
 	if count != 1 {
 		t.Error("Failed to get expected nr of elements: " + strconv.Itoa(count) + "| Expected 1!")
@@ -215,6 +209,40 @@ func Test_Pos_GetAllCurr(t *testing.T) {
 	// Check to see if the ID's are the same
 	if fetchedCurrency[0].ID != testCurrPos.ID {
 		t.Error("Fetched currencies's id isn't the same!")
+	}
+
+	// Clean up after testing
+	_ = session.DB(testdb.DatabaseName).C(testdb.CurrCollName).DropCollection()
+}
+
+// Positive test, db.Count
+func Test_Pos_Count(t *testing.T) {
+	// Dial database
+	session, err := mgo.Dial(testdb.DatabaseURL)
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+
+	// Add test webhook manually
+	errFind := session.DB(testdb.DatabaseName).C(testdb.CurrCollName).Insert(testCurrPos)
+	if errFind != nil {
+		t.Error("Failed to add element in the database for testing")
+	}
+
+	// Fetch the added webhook
+	count, errGet := testdb.Count(testdb.CurrCollName)
+	if errGet.Status != 0 {
+		t.Error("GetCurrByDate function got an error: " + strconv.Itoa(errGet.Status) + " | " + errGet.Msg)
+	}
+
+	count, errCount := session.DB(testdb.DatabaseName).C(testdb.CurrCollName).Count()
+	if errCount != nil {
+		t.Error("Faild to count elements in table: " + testdb.CurrCollName + " in the database!")
+	}
+
+	if count != 1 {
+		t.Error("Failed to get expected nr of elements: " + strconv.Itoa(count) + "| Expected 1!")
 	}
 
 	// Clean up after testing

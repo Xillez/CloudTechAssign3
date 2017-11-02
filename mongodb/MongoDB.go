@@ -97,7 +97,7 @@ func (db *MongoDB) GetWebhook(id string, webhook *types.WebhookInfo) utils.CustE
 
 // GetAllWebhooks - Gets all the webhooks
 // if no entries are found, an error is returned
-func (db *MongoDB) GetAllWebhooks(webhook []types.WebhookInfo) utils.CustError {
+func (db *MongoDB) GetAllWebhooks(webhook *[]types.WebhookInfo) utils.CustError {
 	// Dial database
 	log.Println(Info + "Dialing databse")
 	session, err := mgo.Dial(db.DatabaseURL)
@@ -110,7 +110,7 @@ func (db *MongoDB) GetAllWebhooks(webhook []types.WebhookInfo) utils.CustError {
 
 	// Try to get webhook details from database
 	log.Println(Info + "Trying to get all wbhooks in the database")
-	errFind := session.DB(db.DatabaseName).C(db.WebCollName).Find(nil).All(&webhook)
+	errFind := session.DB(db.DatabaseName).C(db.WebCollName).Find(nil).All(webhook)
 	if errFind != nil {
 		// Something went wrong! Inform the user!
 		log.Println(Error + "Couldn't get all webhooks from database! Inform the user!")
@@ -345,7 +345,7 @@ func (db *MongoDB) InvokeWebhooks(checkMinMax bool) utils.CustError {
 
 	// Get all webhooks
 	log.Println(Info + "Trying to get all webhooks from database for invoking")
-	err = db.GetAllWebhooks(webhooks)
+	err = db.GetAllWebhooks(&webhooks)
 	if err.Status != 0 {
 		log.Println(Error + "Failed to get all webhooks from database for invoking!")
 	}

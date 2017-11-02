@@ -28,8 +28,7 @@ var Warn = "[WARNING]: "
 var Error = "[ERROR]: "
 var Info = "[INFO]: "
 
-//var db = &mongodb.MongoDB{"mongodb://localhost", "Currencies", "webhook", "curr"}
-var db = &mongodb.MongoDB{"mongodb://admin:admin@ds151452.mlab.com:51452/webhook_curr", "webhook_curr", "webhook", "curr"}
+var DB = &mongodb.MongoDB{"mongodb://admin:admin@ds151452.mlab.com:51452/webhook_curr", "webhook_curr", "webhook", "curr"}
 
 /* ---------- Root Handler functions ---------- */
 
@@ -60,7 +59,7 @@ func procGetWebHook(url string, w http.ResponseWriter) utils.CustError {
 
 	log.Println(Info + "Trying to get requested webhook")
 	// Retrieve webhook from database
-	err = db.GetWebhook(splitURL[2], &webhook)
+	err = DB.GetWebhook(splitURL[2], &webhook)
 	if err.Status != 0 {
 		return err
 	}
@@ -126,7 +125,7 @@ func procAddWebHook(r *http.Request, w http.ResponseWriter) utils.CustError {
 	log.Println(Info + "converting retrieved webhook data into storage format")
 	webhookID := bson.NewObjectId()
 	// Add webhook info to database
-	err := db.AddWebhook(types.WebhookInfo{
+	err := DB.AddWebhook(types.WebhookInfo{
 		webhookID,
 		webhook.URL,
 		webhook.BaseCurrency,
@@ -172,7 +171,7 @@ func procDelWebHook(url string, w http.ResponseWriter) utils.CustError {
 
 	log.Println(Info + "Deleting requested webhook")
 	// Try to delete webhook entry with given id
-	errDel := db.DelWebhook(splitURL[2])
+	errDel := DB.DelWebhook(splitURL[2])
 	if errDel.Status != 0 {
 		return errDel
 	}
@@ -216,10 +215,10 @@ func procLatest(r *http.Request, w http.ResponseWriter) utils.CustError {
 
 	log.Println(Info + "Getting currency from database")
 	// Retrieve currency info with current date, if error, try with yesterday's dates
-	errRetCurr := db.GetCurrByDate(time.Now().Format("2006-01-02"), &currInfo)
+	errRetCurr := DB.GetCurrByDate(time.Now().Format("2006-01-02"), &currInfo)
 	if errRetCurr.Status != 0 {
 		log.Println(Warn + "Failed getting for current day, trying to get from yester day instead (it's before 17:00)")
-		errRetCurr := db.GetCurrByDate(time.Now().AddDate(0, 0, -1).Format("2006-01-02"), &currInfo)
+		errRetCurr := DB.GetCurrByDate(time.Now().AddDate(0, 0, -1).Format("2006-01-02"), &currInfo)
 		if errRetCurr.Status != 0 {
 			return errRetCurr
 		}
@@ -237,23 +236,29 @@ func procLatest(r *http.Request, w http.ResponseWriter) utils.CustError {
 /* ---------- Average Handler functions ---------- */
 
 func fetchAverage(baseCurr string, targetCurr string) (float64, utils.CustError) {
-	curr := []types.CurrencyInfo{}
+	curr := make([]types.CurrencyInfo, 3, 3)
 	avg := 0.0
 
-	// Get all 3 currency documents
-	log.Println(Info + "Trying to get all currencies from databse")
-	err := db.GetAllCurr(&curr)
-	if err.Status != 0 {
-		return 0.0, utils.CustError{http.StatusInternalServerError, utils.ErrorStr[1] + " | Error: Couldn't locate a currency for the average!"}
-	}
-
-	// Add up rates for target currency for averaging
-	log.Println(Info + "Adding all " + strconv.Itoa(len(curr)) + " day of rates for TargetCurrency")
 	for i := 0; i < len(curr); i++ {
+		// Find date
+		date := time.Now().AddDate(0, 0, -i).Format("2006-01-02")
+		if time.Now().Hour() < 17 {
+			date = time.Now().AddDate(0, 0, -(i + 1)).Format("2006-01-02")
+		}
+
+		// Get currency document with specified date
+		log.Println(Info + "Trying to get currency with date: " + date + " from databse!")
+		err := DB.GetCurrByDate(date, &curr[i])
+		if err.Status != 0 {
+			return 0.0, utils.CustError{http.StatusInternalServerError, utils.ErrorStr[1] + " | Error: Failed to get average!"}
+		}
+
+		// Add up given TargetCurrency's rate for averaging
+		log.Println(Info + "Adding all " + strconv.Itoa(len(curr)) + " day of rates for TargetCurrency")
 		avg += curr[i].Rates[targetCurr]
 	}
 
-	log.Println(Info + "Averaging su??????????????????????????????????????????????????????????????????+")
+	log.Println(Info + "Averaging finished successfully")
 	// Nothing bad happened
 	return avg / float64(len(curr)), utils.CustError{0, utils.ErrorStr[0]}
 }
@@ -351,7 +356,7 @@ func handlerAverage(w http.ResponseWriter, r *http.Request) {
 func handlerEvalTrigger(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		db.InvokeWebhooks(false)
+		DB.InvokeWebhooks(false)
 	default:
 		utils.CheckPrintErr(utils.CustError{http.StatusNotImplemented, utils.ErrorStr[9]}, w)
 		return
@@ -359,17 +364,17 @@ func handlerEvalTrigger(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	err := db.Init()
+	err := DB.Init()
 	if err != nil {
 		panic(err)
 	}
 
 	// Registration of webhhooks goes over "/root"
 	// While viewing and deletion of webhooks goes over "/root/"
-	http.HandleFunc("/root", handlerRoot)
-	http.HandleFunc("/root/", handlerRoot)
-	http.HandleFunc("/root/latest", handlerLatest)
-	http.HandleFunc("/root/average", handlerAverage)
-	http.HandleFunc("/root/evaluationtrigger", handlerEvalTrigger)
+	http.HandleFunc("/exchange", handlerRoot)
+	http.HandleFunc("/exchange/", handlerRoot)
+	http.HandleFunc("/exchange/latest", handlerLatest)
+	http.HandleFunc("/exchange/average", handlerAverage)
+	http.HandleFunc("/exchange/evaluationtrigger", handlerEvalTrigger)
 	http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 }
