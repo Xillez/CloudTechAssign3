@@ -1,9 +1,10 @@
 package main
 
 import (
-	"Assignment2/mongodb"
 	"log"
 	"time"
+
+	"github.com/Xillez/CloudTechAssign2/mongodb"
 )
 
 var testCurr string

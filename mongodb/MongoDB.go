@@ -1,13 +1,15 @@
 package mongodb
 
 import (
-	"Assignment2/types"
-	"Assignment2/utils"
 	"bytes"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/Xillez/CloudTechAssign2/types"
+
+	"github.com/Xillez/CloudTechAssign2/utils"
 
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"

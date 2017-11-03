@@ -17,9 +17,9 @@ import (
 	"strconv"
 	"time"
 
-	"Assignment2/mongodb"
-	"Assignment2/types"
-	"Assignment2/utils"
+	"github.com/Xillez/CloudTechAssign2/mongodb"
+	"github.com/Xillez/CloudTechAssign2/types"
+	"github.com/Xillez/CloudTechAssign2/utils"
 
 	"gopkg.in/mgo.v2/bson"
 )
