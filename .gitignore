@@ -1,4 +1,5 @@
 .env
 .docker_build/
 coverprofile.out
-imt2681_studentdb-master/
+cmd/web/web
+cmd/clock/clock
