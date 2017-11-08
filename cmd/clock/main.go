@@ -19,7 +19,17 @@ var db = &mongodb.MongoDB{"mongodb://admin:admin@ds151452.mlab.com:51452/webhook
 
 func keepAlive() {
 	for true {
-		http.Get("https://powerful-brushlands-93106.herokuapp.com/")
+		log.Println("[INFO]: ---------- keepAlive() ---------- ")
+		log.Println("[INFO]: Trying to http.Get from web")
+		_, err := http.Get("https://powerful-brushlands-93106.herokuapp.com/")
+		if err != nil {
+			log.Println("[ERROR]: Failed http.Get from web!")
+		} else {
+			log.Println("[INFO]: Successful http.Get to web!")
+		}
+
+		log.Println("[INFO] Sleeping for 15 min!")
+		log.Println("[INFO]: ---------- keepAlive() END ----------")
 		time.Sleep(time.Minute * 15)
 	}
 }
