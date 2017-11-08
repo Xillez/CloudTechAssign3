@@ -19,7 +19,7 @@ var db = &mongodb.MongoDB{"mongodb://admin:admin@ds151452.mlab.com:51452/webhook
 
 func keepAlive() {
 	for true {
-		http.Get("localhost:8080/exchange/") //"https://powerful-brushlands-93106.herokuapp.com/excange/")
+		http.Get("https://powerful-brushlands-93106.herokuapp.com/")
 		time.Sleep(time.Minute * 15)
 	}
 }
