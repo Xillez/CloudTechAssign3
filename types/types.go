@@ -23,11 +23,11 @@ type WebhookInv struct {
 
 // WebhookDisp - Display format for webhooks
 type WebhookDisp struct {
-	URL            string  `json:"webhookURL"      bson:"webhookURL"`
-	BaseCurrency   string  `json:"baseCurrency"    bson:"baseCurrency"`
-	TargetCurrency string  `json:"targetCurrency"  bson:"targetCurrency"`
-	MinValue       float64 `json:"minTriggerValue" bson:"minTriggerValue"`
-	MaxValue       float64 `json:"maxTriggerValue" bson:"maxTriggerValue"`
+	URL            string  `bson:"webhookURL"`
+	BaseCurrency   string  `bson:"baseCurrency"`
+	TargetCurrency string  `bson:"targetCurrency"`
+	MinValue       float64 `bson:"minTriggerValue"`
+	MaxValue       float64 `bson:"maxTriggerValue"`
 }
 
 // CurrencyInfo - Physical format of stored response from api.fixer.io/latest
