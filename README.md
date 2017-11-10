@@ -16,15 +16,7 @@ Add this to .git/config:
 	fetch = +refs/heads/*:refs/remotes/heroku/*
 
 ###Github repo ###
-Link: https://github.com/Xillez/CloudTechAssign3
-
-### How do I use it? ###
-
-* URL: URL HERE
-
-### Important content ###
-
-* IMPORTANT CONTENT HERE
+Link: https://github.com/Xillez/CloudTechAssig3
 
 ### Who do I talk to? ###
 
