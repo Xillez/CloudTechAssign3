@@ -1,9 +1,10 @@
 package mongodb
 
 import (
-	"Assignment3/types"
 	"strconv"
 	"testing"
+
+	"github.com/Xillez/CloudTechAssign3/types"
 
 	"gopkg.in/mgo.v2/bson"
 
