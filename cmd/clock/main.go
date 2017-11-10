@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Xillez/CloudTechAssign2/mongodb"
+	"github.com/Xillez/CloudTechAssign3/mongodb"
 )
 
 var testCurr string

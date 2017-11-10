@@ -1,7 +1,7 @@
 package mongodb
 
 import (
-	"Assignment2/types"
+	"Assignment3/types"
 	"strconv"
 	"testing"
 
