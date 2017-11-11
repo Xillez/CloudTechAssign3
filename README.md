@@ -10,12 +10,13 @@ A basic currency exchange web service.
 Link: https://git.heroku.com/sleepy-eyrie-58724.git
 
 Add this to .git/config:
-
+```
 [remote "heroku"]
 	url = https://git.heroku.com/sleepy-eyrie-58724.git
 	fetch = +refs/heads/*:refs/remotes/heroku/*
+```
 
-###Github repo ###
+### Github repo ###
 Link: https://github.com/Xillez/CloudTechAssig3
 
 ### Who do I talk to? ###
