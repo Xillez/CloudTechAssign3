@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Xillez/CloudTechAssign2/types"
+	"github.com/Xillez/CloudTechAssign3/types"
 
-	"github.com/Xillez/CloudTechAssign2/utils"
+	"github.com/Xillez/CloudTechAssign3/utils"
 
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"

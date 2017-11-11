@@ -26,7 +26,7 @@ var Warn = "[WARNING]: "
 var Error = "[ERROR]: "
 var Info = "[INFO]: "
 
-var DB = &mongodb.MongoDB{"mongodb://admin:admin@ds151452.mlab.com:51452/webhook_curr", "webhook_curr", "webhook", "curr"}
+var DB = &mongodb.MongoDB{"mongodb://admin:assign3@ds157185.mlab.com:57185/assignment3", "assignment3", "webhook", "curr"}
 
 /* ---------- Root Handler functions ---------- */
 
