@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/Xillez/CloudTechAssign3/types"
-
 	"github.com/Xillez/CloudTechAssign3/utils"
 
 	mgo "gopkg.in/mgo.v2"

@@ -2,62 +2,7 @@
 	"comment": "",
 	"ignore": "test",
 	"package": [
-		{
-			"checksumSHA1": "8q01ke/nsYvZasZmI7cY6SBqkgk=",
-			"origin": "github.com/Xillez/CloudTechAssign3/vendor/github.com/Xillez/CloudTechAssign3/mongodb",
-			"path": "github.com/Xillez/CloudTechAssign3/mongodb",
-			"revision": "78705c4a58f5fb32453dbd02052048bc505b4f39",
-			"revisionTime": "2017-11-10T12:25:46Z"
-		},
-		{
-			"checksumSHA1": "m0MypeyF2zqiWim+D9utuvowDqU=",
-			"origin": "github.com/Xillez/CloudTechAssign3/vendor/github.com/Xillez/CloudTechAssign3/types",
-			"path": "github.com/Xillez/CloudTechAssign3/types",
-			"revision": "78705c4a58f5fb32453dbd02052048bc505b4f39",
-			"revisionTime": "2017-11-10T12:25:46Z"
-		},
-		{
-			"checksumSHA1": "P+33WmfxDEVx2mBKffKFweosKmk=",
-			"origin": "github.com/Xillez/CloudTechAssign3/vendor/github.com/Xillez/CloudTechAssign3/utils",
-			"path": "github.com/Xillez/CloudTechAssign3/utils",
-			"revision": "78705c4a58f5fb32453dbd02052048bc505b4f39",
-			"revisionTime": "2017-11-10T12:25:46Z"
-		},
-		{
-			"checksumSHA1": "1D8GzeoFGUs5FZOoyC2DpQg8c5Y=",
-			"origin": "github.com/Xillez/CloudTechAssign3/vendor/gopkg.in/mgo.v2",
-			"path": "gopkg.in/mgo.v2",
-			"revision": "78705c4a58f5fb32453dbd02052048bc505b4f39",
-			"revisionTime": "2017-11-10T12:25:46Z"
-		},
-		{
-			"checksumSHA1": "YsB2DChSV9HxdzHaKATllAUKWSI=",
-			"origin": "github.com/Xillez/CloudTechAssign3/vendor/gopkg.in/mgo.v2/bson",
-			"path": "gopkg.in/mgo.v2/bson",
-			"revision": "78705c4a58f5fb32453dbd02052048bc505b4f39",
-			"revisionTime": "2017-11-10T12:25:46Z"
-		},
-		{
-			"checksumSHA1": "XQsrqoNT1U0KzLxOFcAZVvqhLfk=",
-			"origin": "github.com/Xillez/CloudTechAssign3/vendor/gopkg.in/mgo.v2/internal/json",
-			"path": "gopkg.in/mgo.v2/internal/json",
-			"revision": "78705c4a58f5fb32453dbd02052048bc505b4f39",
-			"revisionTime": "2017-11-10T12:25:46Z"
-		},
-		{
-			"checksumSHA1": "LEvMCnprte47qdAxWvQ/zRxVF1U=",
-			"origin": "github.com/Xillez/CloudTechAssign3/vendor/gopkg.in/mgo.v2/internal/sasl",
-			"path": "gopkg.in/mgo.v2/internal/sasl",
-			"revision": "78705c4a58f5fb32453dbd02052048bc505b4f39",
-			"revisionTime": "2017-11-10T12:25:46Z"
-		},
-		{
-			"checksumSHA1": "+1WDRPaOphSCmRMxVPIPBV4aubc=",
-			"origin": "github.com/Xillez/CloudTechAssign3/vendor/gopkg.in/mgo.v2/internal/scram",
-			"path": "gopkg.in/mgo.v2/internal/scram",
-			"revision": "78705c4a58f5fb32453dbd02052048bc505b4f39",
-			"revisionTime": "2017-11-10T12:25:46Z"
-		}
+		
 	],
 	"rootPath": "github.com/Xillez/CloudTechAssign3/cmd/web"
 }
