@@ -131,7 +131,7 @@ func procAddWebHook(r *http.Request, w http.ResponseWriter) utils.CustError {
 		webhook.MinValue,
 		webhook.MaxValue})
 	if err.Status != 0 {
-		fmt.Println("Error: " + strconv.Itoa(err.Status) + " | " + err.Msg)
+		fmt.Println(Error + strconv.Itoa(err.Status) + " | " + err.Msg)
 		return err
 	}
 
