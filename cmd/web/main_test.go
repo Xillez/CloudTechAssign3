@@ -24,14 +24,16 @@ var testWebhookNeg = types.WebhookInfo{bson.NewObjectId(), "http://webhook:8080/
 var testCurrPos = types.CurrencyInfo{bson.NewObjectId(), "EUR", "2017-01-01", map[string]float64{"NOK": 2.0}}
 var client = http.Client{}
 
-func Test_TestingSetup(t *testing.T) {
+/*func Test_TestingSetup(t *testing.T) {
 	//DB = &mongodb.MongoDB{"mongodb://localhost", "Testing", "testWeb", "testCurr"}
 	//DB.Init()
-	testdb.Init()
-}
+}*/
 
 // Positive test, ProcGetWebhook
 func Test_Pos_ProcGetWebhook(t *testing.T) {
+	// Initialize database
+	testdb.Init()
+
 	fetchedWebhook := types.WebhookDisp{}
 
 	// Dial database
@@ -83,6 +85,9 @@ func Test_Pos_ProcGetWebhook(t *testing.T) {
 
 // Positive test, ProcAddWebhook
 func Test_Pos_ProcAddWebhook(t *testing.T) {
+	// Initialize database
+	testdb.Init()
+
 	fetchedWebhook := types.WebhookInfo{}
 
 	// Dial database

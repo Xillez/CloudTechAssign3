@@ -15,12 +15,11 @@ var testdb = &MongoDB{"mongodb://localhost", "Testing", "testWeb", "testCurr"}
 var testWebhookPos = types.WebhookInfo{bson.NewObjectId(), "http://webhook:8080/something", "EUR", "NOK", 0.5, 2.0}
 var testCurrPos = types.CurrencyInfo{bson.NewObjectId(), "EUR", "2017-01-01", map[string]float64{"NOK": 2.0}}
 
-func Test_TestingSetup(t *testing.T) {
-	testdb.Init()
-}
-
 // Positive test, db.AddWebhook
 func Test_Pos_AddWebhook(t *testing.T) {
+	// Initialize database
+	testdb.Init()
+
 	fetchedWebhook := types.WebhookInfo{}
 	// Dial database
 	session, err := mgo.Dial(testdb.DatabaseURL)
@@ -52,6 +51,9 @@ func Test_Pos_AddWebhook(t *testing.T) {
 
 // Positive test, db.AddCurr
 func Test_Pos_AddCurr(t *testing.T) {
+	// Initialize database
+	testdb.Init()
+
 	fetchedCurr := types.CurrencyInfo{}
 	// Dial database
 	session, err := mgo.Dial(testdb.DatabaseURL)

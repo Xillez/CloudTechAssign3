@@ -15,7 +15,7 @@ var Error = "[ERROR]: "
 var Info = "[INFO]: "
 
 //var db = &mongodb.MongoDB{"mongodb://localhost", "Currencies", "webhook", "curr"}
-var db = &mongodb.MongoDB{"mongodb://admin:admin@ds151452.mlab.com:51452/webhook_curr", "webhook_curr", "webhook", "curr"}
+var db = &mongodb.MongoDB{"mongodb://admin:assign3@ds157185.mlab.com:57185/assignment3", "assignment3", "webhook", "curr"}
 
 func keepAlive() {
 	for true {
