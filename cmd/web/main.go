@@ -30,6 +30,10 @@ var DB = &mongodb.MongoDB{"mongodb://admin:assign3@ds157185.mlab.com:57185/assig
 
 /* ---------- Root Handler functions ---------- */
 
+func testing_to_see_if_heroku_will_FUCKIN_UPDATE() {
+
+}
+
 func procGetWebHook(url string, w http.ResponseWriter) utils.CustError {
 	log.Println(Info + "--------------- Got GetWebhook Request ---------------")
 	http.Header.Add(w.Header(), "content-type", "application/json")
