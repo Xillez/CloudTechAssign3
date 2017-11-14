@@ -14,7 +14,7 @@ import (
 	"github.com/Xillez/CloudTechAssign3/types"
 	"github.com/Xillez/CloudTechAssign3/utils"
 
-	mgo "gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -60,7 +60,7 @@ func Test_Pos_ProcGetWebhook(t *testing.T) {
 	// Get webhook from processing function
 	resp, err := http.Get(server.URL + "/exchange/" + testWebhookPos.ID.Hex())
 
-	byteSlice := []byte{}
+	var byteSlice []byte
 	resp.Body.Read(byteSlice)
 	fmt.Println("procGetWebHook: RESP BODY!!!!!!")
 	fmt.Println(byteSlice)
