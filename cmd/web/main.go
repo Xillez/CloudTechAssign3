@@ -75,8 +75,18 @@ func procGetWebHook(url string, w http.ResponseWriter) utils.CustError {
 		webhook.MaxValue,
 	}
 
+	/*slice := []byte{}
+	slice, err2 := json.Marshal(display)
+	fmt.Println(err2.Error())
+	fmt.Println("BEGINNING OF DISPLAY!")
+	fmt.Println(string(slice))
+	fmt.Println("ENDING OF DISPLAY!")*/
+
+	fmt.Printf("%v\n", display)
+
 	log.Println(Info + "Encoding webhook to browser")
 	// Dump the fetched webhook to browser
+
 	errEncode := json.NewEncoder(w).Encode(&display)
 	if errEncode != nil {
 		// Somehting went wrong! Inform the user!
@@ -103,6 +113,11 @@ func procAddWebHook(r *http.Request, w http.ResponseWriter) utils.CustError {
 
 	log.Println(Info + "Validating data from recieved AddWebhook request")
 	// Validate vital data
+	if webhook.URL != "" {
+		log.Println(Warn + "Validation failed! Informing user!")
+		// Somehting went wrong! Inform the user!
+		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": \"webhookURL\" can't be empty!"}
+	}
 	if webhook.BaseCurrency != "EUR" {
 		log.Println(Warn + "Validation failed! Informing user!")
 		// Somehting went wrong! Inform the user!
