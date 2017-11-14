@@ -71,8 +71,18 @@ func procGetWebHook(url string, w http.ResponseWriter) utils.CustError {
 		webhook.MaxValue,
 	}
 
+	/*slice := []byte{}
+	slice, err2 := json.Marshal(display)
+	fmt.Println(err2.Error())
+	fmt.Println("BEGINNING OF DISPLAY!")
+	fmt.Println(string(slice))
+	fmt.Println("ENDING OF DISPLAY!")*/
+
+	fmt.Printf("%v\n", display)
+
 	log.Println(Info + "Encoding webhook to browser")
 	// Dump the fetched webhook to browser
+
 	errEncode := json.NewEncoder(w).Encode(&display)
 	if errEncode != nil {
 		// Somehting went wrong! Inform the user!

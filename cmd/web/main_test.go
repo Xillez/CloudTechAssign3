@@ -3,10 +3,10 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/Xillez/CloudTechAssign3/mongodb"
@@ -55,8 +55,14 @@ func Test_Pos_ProcGetWebhook(t *testing.T) {
 
 	// Get webhook from processing function
 	resp, err := http.Get(server.URL + "/exchange/" + testWebhookPos.ID.Hex())
+
+	byteSliceRespBody, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println("BODY STARTS HERE!!!!")
+	fmt.Println(string(byteSliceRespBody))
+	fmt.Println("BODY ENDS HERE!!!!")
+
 	if err != nil {
-		t.Error("Failed to from the server! | Error: " + err.Error())
+		t.Error("Failed to fetch from the server! | Error: " + err.Error())
 	}
 
 	err = json.NewDecoder(resp.Body).Decode(&fetchedWebhook)
@@ -69,7 +75,7 @@ func Test_Pos_ProcGetWebhook(t *testing.T) {
 	}
 
 	// Clean up after testing
-	_ = session.DB(DB.DatabaseName).C(DB.WebCollName).DropCollection()
+	//_ = session.DB(DB.DatabaseName).C(DB.WebCollName).DropCollection()
 }
 
 // Positive test, ProcAddWebhook
@@ -78,6 +84,7 @@ func Test_Pos_ProcAddWebhook(t *testing.T) {
 	DB.Init()
 
 	fetchedWebhook := types.WebhookInfo{}
+	respWebhook := make(map[string]interface{})
 
 	// Dial database
 	session, err := mgo.Dial(DB.DatabaseURL)
@@ -87,9 +94,8 @@ func Test_Pos_ProcAddWebhook(t *testing.T) {
 	defer session.Close()
 
 	// Make server for testing
-	recorder := httptest.NewRecorder{}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		utils.CheckPrintErr(procAddWebHook(r, recorder), recorder)
+		utils.CheckPrintErr(procAddWebHook(r, w), w)
 	}))
 	defer server.Close()
 
@@ -113,8 +119,13 @@ func Test_Pos_ProcAddWebhook(t *testing.T) {
 		t.Error("Failed to POST to  \"" + server.URL + "\" | Error: " + err.Error())
 	}
 
+	err = json.NewDecoder(resp.Body).Decode(&resp)
+	if err != nil {
+		t.Error("Couldn't decode POST response from testserver | Error: " + err.Error())
+	}
+
 	// Check to see if ID is the same
-	if strings.Contains(resp., testWebhookPos.ID.Hex()) {
+	if respWebhook["_id"] != testWebhookPos.ID.Hex() {
 		t.Error("Names not equal")
 	}
 
@@ -129,5 +140,5 @@ func Test_Pos_ProcAddWebhook(t *testing.T) {
 	}
 
 	// Clean up after testing
-	_ = session.DB(DB.DatabaseName).C(DB.WebCollName).DropCollection()
+	//_ = session.DB(DB.DatabaseName).C(DB.WebCollName).DropCollection()
 }
