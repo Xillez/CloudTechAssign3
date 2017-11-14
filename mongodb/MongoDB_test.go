@@ -7,8 +7,8 @@ import (
 	"github.com/Xillez/CloudTechAssign3/types"
 
 	"gopkg.in/mgo.v2/bson"
-
-	mgo "gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2"
+	"time"
 )
 
 var testdb = &MongoDB{"mongodb://localhost", "Testing", "testWeb", "testCurr"}
@@ -114,7 +114,7 @@ func Test_Pos_GetWebhook(t *testing.T) {
 }
 
 // Positive test, db.GetCurrency
-func Test_Pos_GetCurrency(t *testing.T) {
+func Test_Pos_GetCurrByDate(t *testing.T) {
 	fetchedCurrency := types.CurrencyInfo{}
 	// Dial database
 	session, err := mgo.Dial(testdb.DatabaseURL)
@@ -146,7 +146,7 @@ func Test_Pos_GetCurrency(t *testing.T) {
 
 // Positive test, db.GetAllWebhooks
 func Test_Pos_GetAllWebhooks(t *testing.T) {
-	fetchedWebhook := []types.WebhookInfo{}
+	var fetchedWebhook []types.WebhookInfo
 	// Dial database
 	session, err := mgo.Dial(testdb.DatabaseURL)
 	if err != nil {
@@ -183,7 +183,7 @@ func Test_Pos_GetAllWebhooks(t *testing.T) {
 
 // Positive test, db.GetAllCurr
 func Test_Pos_GetAllCurr(t *testing.T) {
-	fetchedCurrency := []types.CurrencyInfo{}
+	var fetchedCurrency []types.CurrencyInfo
 	// Dial database
 	session, err := mgo.Dial(testdb.DatabaseURL)
 	if err != nil {
@@ -227,7 +227,7 @@ func Test_Pos_Count(t *testing.T) {
 	}
 	defer session.Close()
 
-	// Add test webhook manually
+	// Add test currency manually
 	errFind := session.DB(testdb.DatabaseName).C(testdb.CurrCollName).Insert(testCurrPos)
 	if errFind != nil {
 		t.Error("Failed to add element in the database for testing")
@@ -246,6 +246,46 @@ func Test_Pos_Count(t *testing.T) {
 
 	if count != 1 {
 		t.Error("Failed to get expected nr of elements: " + strconv.Itoa(count) + "| Expected 1!")
+	}
+
+	// Clean up after testing
+	_ = session.DB(testdb.DatabaseName).C(testdb.CurrCollName).DropCollection()
+}
+
+// Positive test, db.UpdateCurr()
+func Test_Pos_UpdateCurr(t *testing.T){
+	// Dial database
+	session, err := mgo.Dial(testdb.DatabaseURL)
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+
+	// Add test currency manually
+	errInsert := session.DB(testdb.DatabaseName).C(testdb.CurrCollName).Insert(testCurrPos)
+	if errInsert != nil {
+		t.Error("Failed to add element in the database for testing")
+	}
+
+	var errUpdate = testdb.UpdateCurr()
+	if errUpdate.Status != 0 {
+		t.Error(errUpdate.Msg)
+	}
+
+	targetDate := time.Now().Format("2006-01-02")
+
+	q := bson.M{"date":targetDate}
+	result := types.CurrencyInfo{}
+
+	//Find test currency manually
+	errFind := session.DB(testdb.DatabaseName).C(testdb.CurrCollName).Find(q).One(&result)
+	if errFind != nil {
+		t.Error("Failed to find element in the database for testing")
+	}
+
+	if result.Date != targetDate {
+		endStr := testCurrPos.Date + " vs " + result.Date
+		t.Error("Database not updated, dates not the same: " + endStr)
 	}
 
 	// Clean up after testing

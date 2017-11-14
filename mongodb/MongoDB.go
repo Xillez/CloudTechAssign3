@@ -10,7 +10,7 @@ import (
 	"github.com/Xillez/CloudTechAssign3/types"
 	"github.com/Xillez/CloudTechAssign3/utils"
 
-	mgo "gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -233,7 +233,7 @@ func (db *MongoDB) AddCurr(curr types.CurrencyInfo) utils.CustError {
 	return utils.CustError{0, utils.ErrorStr[0]}
 }
 
-// UpdateCurr - Updates "date" currency with "curr"
+// UpdateCurr - Gets latest currency from api.fixer.io and dumps it into db
 func (db *MongoDB) UpdateCurr() utils.CustError {
 	// Dial database
 	log.Println(Info + "Dialing database!")
@@ -333,7 +333,7 @@ func (db *MongoDB) Count(collName string) (int, utils.CustError) {
 // if true, it'll check against min/max values
 // if false these check are ignored
 func (db *MongoDB) InvokeWebhooks(checkMinMax bool) utils.CustError {
-	webhooks := []types.WebhookInfo{}
+	var webhooks []types.WebhookInfo
 	curr := types.CurrencyInfo{}
 	client := &http.Client{}
 
