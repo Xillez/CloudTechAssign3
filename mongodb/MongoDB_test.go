@@ -9,6 +9,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"gopkg.in/mgo.v2"
 	"time"
+	"net/http"
 )
 
 var testdb = &MongoDB{"mongodb://localhost", "Testing", "testWeb", "testCurr"}
@@ -233,7 +234,7 @@ func Test_Pos_Count(t *testing.T) {
 		t.Error("Failed to add element in the database for testing")
 	}
 
-	// Fetch the added webhook
+	// Counts the added webhooks
 	count, errGet := testdb.Count(testdb.CurrCollName)
 	if errGet.Status != 0 {
 		t.Error("GetCurrByDate function got an error: " + strconv.Itoa(errGet.Status) + " | " + errGet.Msg)
@@ -254,36 +255,11 @@ func Test_Pos_Count(t *testing.T) {
 
 // Positive test, db.Count
 func Test_Neg_Count(t *testing.T) {
-	// Dial database
-	session, err := mgo.Dial(testdb.DatabaseURL)
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
-
-	// Add test currency manually
-	errFind := session.DB(testdb.DatabaseName).C(testdb.CurrCollName).Insert(testCurrPos)
-	if errFind != nil {
-		t.Error("Failed to add element in the database for testing")
-	}
-
 	// Fetch the added webhook
-	count, errGet := testdb.Count(testdb.CurrCollName)
-	if errGet.Status != 0 {
-		t.Error("GetCurrByDate function got an error: " + strconv.Itoa(errGet.Status) + " | " + errGet.Msg)
+	_, errGet := testdb.Count("")
+	if errGet.Status != http.StatusInternalServerError {
+		t.Error("Count did not return error")
 	}
-
-	count, errCount := session.DB(testdb.DatabaseName).C(testdb.CurrCollName).Count()
-	if errCount != nil {
-		t.Error("Faild to count elements in table: " + testdb.CurrCollName + " in the database!")
-	}
-
-	if count != 1 {
-		t.Error("Failed to get expected nr of elements: " + strconv.Itoa(count) + "| Expected 1!")
-	}
-
-	// Clean up after testing
-	_ = session.DB(testdb.DatabaseName).C(testdb.CurrCollName).DropCollection()
 }
 
 
