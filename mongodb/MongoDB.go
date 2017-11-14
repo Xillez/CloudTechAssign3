@@ -123,34 +123,6 @@ func (db *MongoDB) GetAllWebhooks(webhook *[]types.WebhookInfo) utils.CustError 
 	return utils.CustError{0, utils.ErrorStr[0]}
 }
 
-// GetAllCurr - Gets all currencies
-// if no entries are found, an error is returned
-func (db *MongoDB) GetAllCurr(curr *[]types.CurrencyInfo) utils.CustError {
-	// Dial database
-	log.Println(Info + "Dialing database!")
-	session, err := mgo.Dial(db.DatabaseURL)
-	if err != nil {
-		log.Println(Error + "Failed to dail database!")
-		panic(err)
-	}
-
-	// Postpone closing connection until we return
-	defer session.Close()
-
-	// Try to get currency details from database
-	log.Println(Info + "Trying to get all currencies from database")
-	errFind := session.DB(db.DatabaseName).C(db.CurrCollName).Find(nil).All(curr)
-	if errFind != nil {
-		// Something went wrong! Inform the user!
-		log.Println(Error + "Failed getting all currencies from database! Inform the user!")
-		return utils.CustError{http.StatusInternalServerError, "Failed to get all currencies from the database!"}
-	}
-
-	log.Println(Info + "GetAllCurr finished successfull!")
-	// Nothing bad happened
-	return utils.CustError{0, utils.ErrorStr[0]}
-}
-
 // GetCurrByDate - Gets the currency with the given date
 // if no entry is found, it returns an error and ignores updating the given interface
 func (db *MongoDB) GetCurrByDate(date string, curr *types.CurrencyInfo) utils.CustError {
@@ -175,6 +147,34 @@ func (db *MongoDB) GetCurrByDate(date string, curr *types.CurrencyInfo) utils.Cu
 	}
 
 	log.Println(Info + "GetCurrByDate finished successfull!")
+	// Nothing bad happened
+	return utils.CustError{0, utils.ErrorStr[0]}
+}
+
+// GetAllCurr - Gets all currencies
+// if no entries are found, an error is returned
+func (db *MongoDB) GetAllCurr(curr *[]types.CurrencyInfo) utils.CustError {
+	// Dial database
+	log.Println(Info + "Dialing database!")
+	session, err := mgo.Dial(db.DatabaseURL)
+	if err != nil {
+		log.Println(Error + "Failed to dail database!")
+		panic(err)
+	}
+
+	// Postpone closing connection until we return
+	defer session.Close()
+
+	// Try to get currency details from database
+	log.Println(Info + "Trying to get all currencies from database")
+	errFind := session.DB(db.DatabaseName).C(db.CurrCollName).Find(nil).All(curr)
+	if errFind != nil {
+		// Something went wrong! Inform the user!
+		log.Println(Error + "Failed getting all currencies from database! Inform the user!")
+		return utils.CustError{http.StatusInternalServerError, "Failed to get all currencies from the database!"}
+	}
+
+	log.Println(Info + "GetAllCurr finished successfull!")
 	// Nothing bad happened
 	return utils.CustError{0, utils.ErrorStr[0]}
 }

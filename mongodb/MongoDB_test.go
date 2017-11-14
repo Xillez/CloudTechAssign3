@@ -113,37 +113,6 @@ func Test_Pos_GetWebhook(t *testing.T) {
 	_ = session.DB(testdb.DatabaseName).C(testdb.WebCollName).DropCollection()
 }
 
-// Positive test, db.GetCurrency
-func Test_Pos_GetCurrByDate(t *testing.T) {
-	fetchedCurrency := types.CurrencyInfo{}
-	// Dial database
-	session, err := mgo.Dial(testdb.DatabaseURL)
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
-
-	// Add test webhook manually
-	errFind := session.DB(testdb.DatabaseName).C(testdb.CurrCollName).Insert(testCurrPos)
-	if errFind != nil {
-		t.Error("Failed to add element in the database for testing")
-	}
-
-	// Fetch the added webhook
-	errGet := testdb.GetCurrByDate(testCurrPos.Date, &fetchedCurrency)
-	if errGet.Status != 0 {
-		t.Error("GetCurrByDate function got an error: " + strconv.Itoa(errGet.Status) + " | " + errGet.Msg)
-	}
-
-	// Check to see if the ID's are the same
-	if fetchedCurrency.ID != testCurrPos.ID {
-		t.Error("Fetched currencies's id isn't the same!")
-	}
-
-	// Clean up after testing
-	_ = session.DB(testdb.DatabaseName).C(testdb.CurrCollName).DropCollection()
-}
-
 // Positive test, db.GetAllWebhooks
 func Test_Pos_GetAllWebhooks(t *testing.T) {
 	var fetchedWebhook []types.WebhookInfo
@@ -179,6 +148,37 @@ func Test_Pos_GetAllWebhooks(t *testing.T) {
 
 	// Clean up after testing
 	_ = session.DB(testdb.DatabaseName).C(testdb.WebCollName).DropCollection()
+}
+
+// Positive test, db.GetCurrency
+func Test_Pos_GetCurrByDate(t *testing.T) {
+	fetchedCurrency := types.CurrencyInfo{}
+	// Dial database
+	session, err := mgo.Dial(testdb.DatabaseURL)
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+
+	// Add test webhook manually
+	errFind := session.DB(testdb.DatabaseName).C(testdb.CurrCollName).Insert(testCurrPos)
+	if errFind != nil {
+		t.Error("Failed to add element in the database for testing")
+	}
+
+	// Fetch the added webhook
+	errGet := testdb.GetCurrByDate(testCurrPos.Date, &fetchedCurrency)
+	if errGet.Status != 0 {
+		t.Error("GetCurrByDate function got an error: " + strconv.Itoa(errGet.Status) + " | " + errGet.Msg)
+	}
+
+	// Check to see if the ID's are the same
+	if fetchedCurrency.ID != testCurrPos.ID {
+		t.Error("Fetched currencies's id isn't the same!")
+	}
+
+	// Clean up after testing
+	_ = session.DB(testdb.DatabaseName).C(testdb.CurrCollName).DropCollection()
 }
 
 // Positive test, db.GetAllCurr
@@ -252,6 +252,41 @@ func Test_Pos_Count(t *testing.T) {
 	_ = session.DB(testdb.DatabaseName).C(testdb.CurrCollName).DropCollection()
 }
 
+// Positive test, db.Count
+func Test_Neg_Count(t *testing.T) {
+	// Dial database
+	session, err := mgo.Dial(testdb.DatabaseURL)
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+
+	// Add test currency manually
+	errFind := session.DB(testdb.DatabaseName).C(testdb.CurrCollName).Insert(testCurrPos)
+	if errFind != nil {
+		t.Error("Failed to add element in the database for testing")
+	}
+
+	// Fetch the added webhook
+	count, errGet := testdb.Count(testdb.CurrCollName)
+	if errGet.Status != 0 {
+		t.Error("GetCurrByDate function got an error: " + strconv.Itoa(errGet.Status) + " | " + errGet.Msg)
+	}
+
+	count, errCount := session.DB(testdb.DatabaseName).C(testdb.CurrCollName).Count()
+	if errCount != nil {
+		t.Error("Faild to count elements in table: " + testdb.CurrCollName + " in the database!")
+	}
+
+	if count != 1 {
+		t.Error("Failed to get expected nr of elements: " + strconv.Itoa(count) + "| Expected 1!")
+	}
+
+	// Clean up after testing
+	_ = session.DB(testdb.DatabaseName).C(testdb.CurrCollName).DropCollection()
+}
+
+
 // Positive test, db.UpdateCurr()
 func Test_Pos_UpdateCurr(t *testing.T){
 	// Dial database
@@ -286,6 +321,42 @@ func Test_Pos_UpdateCurr(t *testing.T){
 	if result.Date != targetDate {
 		endStr := testCurrPos.Date + " vs " + result.Date
 		t.Error("Database not updated, dates not the same: " + endStr)
+	}
+
+	// Clean up after testing
+	_ = session.DB(testdb.DatabaseName).C(testdb.CurrCollName).DropCollection()
+}
+
+// Positive test, db.DelWebhook
+func Test_Pos_DelWebook(t *testing.T){
+	session, err := mgo.Dial(testdb.DatabaseURL)
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+
+	// Add test webhook manually
+	errInsert := session.DB(testdb.DatabaseName).C(testdb.WebCollName).Insert(testWebhookPos)
+	if errInsert != nil {
+		t.Error("Failed to add webhook in the database for testing")
+	}
+
+	var errUpdate = testdb.DelWebhook(testWebhookPos.ID.Hex())
+	if errUpdate.Status != 0 {
+		t.Error(errUpdate.Msg)
+	}
+
+	q := bson.M{"_id":testWebhookPos.ID}
+	result := types.CurrencyInfo{}
+
+	//Find test currency manually
+	errFind := session.DB(testdb.DatabaseName).C(testdb.CurrCollName).Find(q).One(&result)
+	if errFind == nil {
+		t.Error("Failed to find webhook in the database for testing")
+	}
+
+	if result.ID.String() == testWebhookPos.ID.String() {
+		t.Error("Database did not delete object, found ObjectID: " + result.ID.String())
 	}
 
 	// Clean up after testing
