@@ -10,7 +10,7 @@ import (
 	"github.com/Xillez/CloudTechAssign3/types"
 	"github.com/Xillez/CloudTechAssign3/utils"
 
-	mgo "gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -123,34 +123,6 @@ func (db *MongoDB) GetAllWebhooks(webhook *[]types.WebhookInfo) utils.CustError 
 	return utils.CustError{0, utils.ErrorStr[0]}
 }
 
-// GetAllCurr - Gets all currencies
-// if no entries are found, an error is returned
-func (db *MongoDB) GetAllCurr(curr *[]types.CurrencyInfo) utils.CustError {
-	// Dial database
-	log.Println(Info + "Dialing database!")
-	session, err := mgo.Dial(db.DatabaseURL)
-	if err != nil {
-		log.Println(Error + "Failed to dail database!")
-		panic(err)
-	}
-
-	// Postpone closing connection until we return
-	defer session.Close()
-
-	// Try to get currency details from database
-	log.Println(Info + "Trying to get all currencies from database")
-	errFind := session.DB(db.DatabaseName).C(db.CurrCollName).Find(nil).All(curr)
-	if errFind != nil {
-		// Something went wrong! Inform the user!
-		log.Println(Error + "Failed getting all currencies from database! Inform the user!")
-		return utils.CustError{http.StatusInternalServerError, "Failed to get all currencies from the database!"}
-	}
-
-	log.Println(Info + "GetAllCurr finished successfull!")
-	// Nothing bad happened
-	return utils.CustError{0, utils.ErrorStr[0]}
-}
-
 // GetCurrByDate - Gets the currency with the given date
 // if no entry is found, it returns an error and ignores updating the given interface
 func (db *MongoDB) GetCurrByDate(date string, curr *types.CurrencyInfo) utils.CustError {
@@ -175,6 +147,34 @@ func (db *MongoDB) GetCurrByDate(date string, curr *types.CurrencyInfo) utils.Cu
 	}
 
 	log.Println(Info + "GetCurrByDate finished successfull!")
+	// Nothing bad happened
+	return utils.CustError{0, utils.ErrorStr[0]}
+}
+
+// GetAllCurr - Gets all currencies
+// if no entries are found, an error is returned
+func (db *MongoDB) GetAllCurr(curr *[]types.CurrencyInfo) utils.CustError {
+	// Dial database
+	log.Println(Info + "Dialing database!")
+	session, err := mgo.Dial(db.DatabaseURL)
+	if err != nil {
+		log.Println(Error + "Failed to dail database!")
+		panic(err)
+	}
+
+	// Postpone closing connection until we return
+	defer session.Close()
+
+	// Try to get currency details from database
+	log.Println(Info + "Trying to get all currencies from database")
+	errFind := session.DB(db.DatabaseName).C(db.CurrCollName).Find(nil).All(curr)
+	if errFind != nil {
+		// Something went wrong! Inform the user!
+		log.Println(Error + "Failed getting all currencies from database! Inform the user!")
+		return utils.CustError{http.StatusInternalServerError, "Failed to get all currencies from the database!"}
+	}
+
+	log.Println(Info + "GetAllCurr finished successfull!")
 	// Nothing bad happened
 	return utils.CustError{0, utils.ErrorStr[0]}
 }
@@ -233,7 +233,7 @@ func (db *MongoDB) AddCurr(curr types.CurrencyInfo) utils.CustError {
 	return utils.CustError{0, utils.ErrorStr[0]}
 }
 
-// UpdateCurr - Updates "date" currency with "curr"
+// UpdateCurr - Gets latest currency from api.fixer.io and dumps it into db
 func (db *MongoDB) UpdateCurr() utils.CustError {
 	// Dial database
 	log.Println(Info + "Dialing database!")
@@ -331,9 +331,9 @@ func (db *MongoDB) Count(collName string) (int, utils.CustError) {
 
 // InvokeWebhooks - Invokes webhooks,
 // if true, it'll check against min/max values
-// if false these check are ignored
+// if false these checks are ignored
 func (db *MongoDB) InvokeWebhooks(checkMinMax bool) utils.CustError {
-	webhooks := []types.WebhookInfo{}
+	var webhooks []types.WebhookInfo
 	curr := types.CurrencyInfo{}
 	client := &http.Client{}
 
@@ -355,18 +355,16 @@ func (db *MongoDB) InvokeWebhooks(checkMinMax bool) utils.CustError {
 	count := len(webhooks)
 
 	// Loop through them
-	log.Println(Info + "Trying to invoke webhooks!")
+	log.Println(Info + "Trying to invoke webhooks")
 	for i := 0; i < count; i++ {
-		log.Println("--------------- Log for " + strconv.Itoa(i) + "---------------")
-		// Store target currency rate for convinience
+		// Store target currency rate for convenience
 		targetCurrRate := curr.Rates[webhooks[i].TargetCurrency]
-		// Check if we should invoke all hooks, or by min/max condition only
-		if !checkMinMax {
-			log.Println(Warn + "Going to ignore minValue/maxValue checking, being evaluated!")
-		}
+
+		// Check if we should invoke all webhooks, or by min/max condition only
 		if !checkMinMax || // min && max => false, we can still invoke
 			targetCurrRate < webhooks[i].MinValue ||
 			targetCurrRate > webhooks[i].MaxValue {
+
 			// Stringify WebhookInv struct
 			reqBody := "{\"baseCurrency\":\"" + webhooks[i].BaseCurrency +
 				"\", \"targetCurrency\":\"" + webhooks[i].TargetCurrency +
@@ -374,25 +372,21 @@ func (db *MongoDB) InvokeWebhooks(checkMinMax bool) utils.CustError {
 				"\", \"minTriggerValue\":" + strconv.FormatFloat(webhooks[i].MinValue, 'f', -1, 64) +
 				", \"maxTriggerValue\":" + strconv.FormatFloat(webhooks[i].MaxValue, 'f', -1, 64) + "}"
 
-			// Build request
-			log.Println(Info + "Trying to build a new POST request with webhooks given URL")
+			// Build request - Trying to build a new POST request with webhooks given URL
 			req, errNewReq := http.NewRequest("POST", webhooks[0].URL, bytes.NewReader([]byte(reqBody)))
 			if errNewReq != nil {
 				log.Println(Error + "Failed to build a new POST request to webhook!")
 			}
 			req.Header.Set("Content-Type", "application/json")
 
-			// Send request
-			log.Println(Info + "Trying to send POST request with requested data")
+			// Send request - Trying to send POST request with requested data
 			_, errClientDo := client.Do(req)
 			if errClientDo != nil {
-				// LOG: RUNNING THE REQUEST FAILED!
 				log.Println(Error + "Failed to send newly created POST request to webhook!")
 			}
 		}
 	}
 
-	log.Println(Info + "InvokeWebhooks finished successfull!")
-	// Nothing bad happened
+	// Nothing bad happened - InvokeWebhooks finished successfull!
 	return utils.CustError{0, utils.ErrorStr[0]}
 }

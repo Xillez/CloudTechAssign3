@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -13,7 +12,7 @@ import (
 	"github.com/Xillez/CloudTechAssign3/types"
 	"github.com/Xillez/CloudTechAssign3/utils"
 
-	mgo "gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -55,12 +54,6 @@ func Test_Pos_ProcGetWebhook(t *testing.T) {
 
 	// Get webhook from processing function
 	resp, err := http.Get(server.URL + "/exchange/" + testWebhookPos.ID.Hex())
-
-	byteSliceRespBody, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println("BODY STARTS HERE!!!!")
-	fmt.Println(string(byteSliceRespBody))
-	fmt.Println("BODY ENDS HERE!!!!")
-
 	if err != nil {
 		t.Error("Failed to fetch from the server! | Error: " + err.Error())
 	}

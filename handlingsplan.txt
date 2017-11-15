@@ -1,0 +1,12 @@
+Eldar:
+	* konfigurerer Slackbot
+	* konfigurerer DialogFlow intents og entities
+	* endre på funksjon som håndterer latest
+		* slik at den også håndterer DialogFlow json POST
+		* og responder med korrekt formatert json og data
+
+Kent:
+	* /cmd/web testing
+
+Amici:
+	* /mongodb testing
