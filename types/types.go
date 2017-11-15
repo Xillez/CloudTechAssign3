@@ -8,7 +8,7 @@ type WebhookInfo struct {
 	URL            string        `bson:"webhookURL"`
 	BaseCurrency   string        `bson:"baseCurrency"`
 	TargetCurrency string        `bson:"targetCurrency"`
-	MinugvvguValue float64       `bson:"minTriggerValue"`
+	MinValue float64       `bson:"minTriggerValue"`
 	MaxValue       float64       `bson:"maxTriggerValue"`
 }
 
@@ -42,4 +42,23 @@ type CurrencyInfo struct {
 type CurrencyReq struct {
 	BaseCurrency   string `json:"baseCurrency"`
 	TargetCurrency string `json:"targetCurrency"`
+}
+
+// DialogFlowReq has the essential format of the incomming requests from dialogFlow bot.
+type DialogFlowReq struct {
+	Result struct{
+		Action string `json:"action"`
+		ActionComplete bool `json:"actionIncomplete"`
+		Context []struct{
+			Parameters struct {
+
+				Currency []string `json:"currency-name"`
+			} `json:"parameters"`
+		} `json:"contexts"`
+	} `json:"result"`
+}
+
+// DialogFlowResp has the required structure for response to DialogFlow bot.
+type DialogFlowResp struct {
+
 }

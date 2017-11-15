@@ -321,6 +321,24 @@ func procAverage(r *http.Request, w http.ResponseWriter) utils.CustError {
 	return utils.CustError{0, utils.ErrorStr[0]}
 }
 
+// procDialogFlow takes JSON structure from the DialogFlow bot and responds
+// with the latest exchange rate as the currency-rate variable.
+func procDialogFlow(r *http.Request, w http.ResponseWriter) utils.CustError {
+
+	log.Println(Info + "--------------- Got DialogFlow Request ---------------")
+
+		jsonBody := types.DialogFlowReq{}
+
+		err := json.NewDecoder(r.Body).Decode(&jsonBody)
+		if err != nil {
+			log.Printf(Warn + "Could not decode JSON. Error: %v", err)
+			return utils.CustError{http.StatusBadRequest, "Invalid JSON format" }
+		}
+
+		log.Printf(Info + "Post request to latest.\n Body:\n %v.", jsonBody)
+		return utils.CustError{0, utils.ErrorStr[0]}
+}
+
 // HandlerRoot - Root path handler, handles registration, viewing and
 // deleting of webhooks
 func handlerRoot(w http.ResponseWriter, r *http.Request) {
@@ -380,11 +398,26 @@ func handlerEvalTrigger(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func handlerDialogFlow(w http.ResponseWriter, r *http.Request){
+
+	if r.Method == "POST" {
+		utils.CheckPrintErr(procDialogFlow(r, w), w)
+	}else{
+		utils.CheckPrintErr(utils.CustError{http.StatusMethodNotAllowed, "Expected a POST request"}, w)	
+	}
+}
+
 func main() {
 	err := DB.Init()
 	if err != nil {
 		panic(err)
 	}
+
+	port := os.Getenv("PORT")
+	if len(port) == 0 {
+		log.Fatal(Error + "$PORT was not set")
+	}
+
 
 	// Registration of webhhooks goes over "/root"
 	// While viewing and deletion of webhooks goes over "/root/"
@@ -393,5 +426,7 @@ func main() {
 	http.HandleFunc("/exchange/latest", handlerLatest)
 	http.HandleFunc("/exchange/average", handlerAverage)
 	http.HandleFunc("/exchange/evaluationtrigger", handlerEvalTrigger)
-	http.ListenAndServe(":"+os.Getenv("PORT"), nil)
+	http.HandleFunc("/exchange/dialogFlowEntryPoint", handlerDialogFlow)
+	log.Printf(Info + "Listening on port: %v", port)
+	http.ListenAndServe(":"+port, nil) 
 }
