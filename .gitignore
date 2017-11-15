@@ -4,3 +4,4 @@ coverprofile.out
 cmd/web/web
 cmd/clock/clock
 .vscode/
+.idea/
