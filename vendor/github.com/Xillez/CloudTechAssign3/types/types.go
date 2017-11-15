@@ -46,12 +46,15 @@ type CurrencyReq struct {
 
 // DialogFlowReq has the essential format of the incomming requests from dialogFlow bot.
 type DialogFlowReq struct {
-	
 	Result struct{
-
 		Action string `json:"action"`
 		ActionComplete bool `json:"actionIncomplete"`
-		Parameters struct {} `json:"parameters"`
+		
+		Parameters struct {
+
+			Currency []string `json:"currency-name"`
+
+		} `json:"parameters"`
 
 	} `json:"result"`
 }
