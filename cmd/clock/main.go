@@ -15,7 +15,7 @@ var Error = "[ERROR]: "
 var Info = "[INFO]: "
 
 //var db = &mongodb.MongoDB{"mongodb://localhost", "Currencies", "webhook", "curr"}
-var db = &mongodb.MongoDB{
+var DB = &mongodb.MongoDB{
 	"mongodb://admin:assign3@ds157185.mlab.com:57185/assignment3",
 	"assignment3",
 	"webhook",
@@ -29,9 +29,9 @@ func updateWebhooks(isWorking *bool, shouldRun4Ever bool) {
 		if dayUpdated != time.Now().Format("2006-01-02") && !(time.Now().Hour() < 17) {
 			didUpdate = false
 			log.Println(Info + "--------------- Updating currency ---------------")
-			db.UpdateCurr()
+			DB.UpdateCurr()
 			log.Println(Info + "--------------- Invoking webhooks ---------------")
-			db.InvokeWebhooks(true)
+			DB.InvokeWebhooks(true)
 
 			dayUpdated = time.Now().Format("2006-01-02")
 			didUpdate = true

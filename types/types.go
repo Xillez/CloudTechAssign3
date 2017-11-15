@@ -8,7 +8,7 @@ type WebhookInfo struct {
 	URL            string        `bson:"webhookURL"`
 	BaseCurrency   string        `bson:"baseCurrency"`
 	TargetCurrency string        `bson:"targetCurrency"`
-	MinugvvguValue float64       `bson:"minTriggerValue"`
+	MinValue float64       `bson:"minTriggerValue"`
 	MaxValue       float64       `bson:"maxTriggerValue"`
 }
 
