@@ -262,7 +262,6 @@ func Test_Neg_Count(t *testing.T) {
 	}
 }
 
-
 // Positive test, db.UpdateCurr()
 func Test_Pos_UpdateCurr(t *testing.T){
 	// Dial database
@@ -336,5 +335,36 @@ func Test_Pos_DelWebook(t *testing.T){
 	}
 
 	// Clean up after testing
+	_ = session.DB(testdb.DatabaseName).C(testdb.WebCollName).DropCollection()
+}
+
+func Test_InvokeWebhooks(t *testing.T){
+	// Dial database
+	session, err := mgo.Dial(testdb.DatabaseURL)
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+
+	// Add test webhook manually
+	errInsert := session.DB(testdb.DatabaseName).C(testdb.WebCollName).Insert(testWebhookPos)
+	if errInsert != nil {
+		t.Error("Failed to add webhook in the database for testing")
+	}
+
+	// Add test currency manually
+	errFind := session.DB(testdb.DatabaseName).C(testdb.CurrCollName).Insert(testCurrPos)
+	if errFind != nil {
+		t.Error("Failed to add element in the database for testing")
+	}
+
+	// invokes all webhooks
+	custErr := testdb.InvokeWebhooks(false)
+	if custErr.Status != 0 {
+		t.Error(custErr.Msg)
+	}
+
+	// Clean up after testing
 	_ = session.DB(testdb.DatabaseName).C(testdb.CurrCollName).DropCollection()
+	_ = session.DB(testdb.DatabaseName).C(testdb.WebCollName).DropCollection()
 }
