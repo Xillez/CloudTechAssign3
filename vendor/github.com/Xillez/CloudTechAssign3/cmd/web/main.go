@@ -234,7 +234,7 @@ func procLatest(r *http.Request, w http.ResponseWriter) utils.CustError {
 	// Retrieve currency info with current date, if error, try with yesterday's dates
 	errRetCurr := DB.GetCurrByDate(time.Now().Format("2006-01-02"), &currInfo)
 	if errRetCurr.Status != 0 {
-		log.Println(Warn + "Failed getting for current day, trying to get from yester day instead (it's before 17:00)")
+		log.Println(Warn + "Failed getting for current day, trying to get from yesterday instead (it's before 17:00)")
 		errRetCurr := DB.GetCurrByDate(time.Now().AddDate(0, 0, -1).Format("2006-01-02"), &currInfo)
 		if errRetCurr.Status != 0 {
 			return errRetCurr
@@ -327,16 +327,62 @@ func procDialogFlow(r *http.Request, w http.ResponseWriter) utils.CustError {
 
 	log.Println(Info + "--------------- Got DialogFlow Request ---------------")
 
-		jsonBody := types.DialogFlowReq{}
+	// Checking request
 
-		err := json.NewDecoder(r.Body).Decode(&jsonBody)
-		if err != nil {
-			log.Printf(Warn + "Could not decode JSON. Error: %v", err)
-			return utils.CustError{http.StatusBadRequest, "Invalid JSON format" }
+	jsonReq := types.DialogFlowReq{}
+
+	err := json.NewDecoder(r.Body).Decode(&jsonReq)
+	if err != nil {
+		log.Printf(Warn + "Could not decode JSON. Error: %v", err)
+		return utils.CustError{http.StatusBadRequest, "Invalid JSON format" }
+	}
+
+	log.Printf(Info + "Post request for DialogFlow.\n Contains:\n %v.", jsonReq)
+
+	if len(jsonReq.Result.Parameters.Currency) != 2 {
+		return utils.CustError{http.StatusBadRequest, "Expected two Parameters"}
+	}
+
+	if jsonReq.Result.Parameters.Currency[0] != "EUR" {
+		return utils.CustError{http.StatusNotImplemented, "'EUR' is the only base currency for now"}
+	}
+
+	currInfo := types.CurrencyInfo{}
+
+	// Getting latest from database
+
+	errRetCurr := DB.GetCurrByDate(time.Now().Format("2006-01-02"), &currInfo)
+	if errRetCurr.Status != 0 {
+
+		log.Println(Warn + "Failed getting for current day, trying to get from yesterday instead (it's before 17:00)")
+
+		errRetCurr := DB.GetCurrByDate(time.Now().AddDate(0, 0, -1).Format("2006-01-02"), &currInfo)
+		if errRetCurr.Status != 0 {
+			return errRetCurr
 		}
+	}
 
-		log.Printf(Info + "Post request to latest.\n Body:\n %v.", jsonBody)
-		return utils.CustError{0, utils.ErrorStr[0]}
+	// Checking target currency is valid
+	if currInfo.Rates[string(jsonReq.Result.Parameters.Currency[1])] == 0 {
+		return utils.CustError{http.StatusBadRequest, "Did not recognice the target currency" }
+	}
+
+	// Creating response
+
+	http.Header.Add(w.Header(), "content-type", "text/plain")
+	
+	resp := types.DialogFlowResp{}
+
+	resp.Speech=strconv.FormatFloat(currInfo.Rates[jsonReq.Result.Parameters.Currency[1]], 'f', -1, 64)
+	resp.DisplayText=resp.Speech + " disp"
+
+	// Send respons
+	errEncode := json.NewEncoder(w).Encode(&resp)
+	if errEncode != nil {
+		return utils.CustError{http.StatusInternalServerError, "Could not encoding result"}
+	}
+
+	return utils.CustError{0, utils.ErrorStr[0]}
 }
 
 // HandlerRoot - Root path handler, handles registration, viewing and

@@ -49,7 +49,7 @@ type DialogFlowReq struct {
 	Result struct{
 		Action string `json:"action"`
 		ActionComplete bool `json:"actionIncomplete"`
-		
+
 		Parameters struct {
 
 			Currency []string `json:"currency-name"`
@@ -61,5 +61,6 @@ type DialogFlowReq struct {
 
 // DialogFlowResp has the required structure for response to DialogFlow bot.
 type DialogFlowResp struct {
-
+	Speech string `json:"speech"`
+	DisplayText string `json:"displayText"`
 }
