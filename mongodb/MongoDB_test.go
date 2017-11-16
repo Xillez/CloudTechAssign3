@@ -21,7 +21,7 @@ func Test_Pos_AddWebhook(t *testing.T) {
 	testdb.Init()
 
 	fetchedWebhook := types.WebhookInfo{}
-	// Dial database
+	// Setup session with database
 	session, err := mgo.Dial(testdb.DatabaseURL)
 	if err != nil {
 		panic(err)
@@ -55,7 +55,7 @@ func Test_Pos_AddCurr(t *testing.T) {
 	testdb.Init()
 
 	fetchedCurr := types.CurrencyInfo{}
-	// Dial database
+	// Setup session with database
 	session, err := mgo.Dial(testdb.DatabaseURL)
 	if err != nil {
 		panic(err)
@@ -85,7 +85,7 @@ func Test_Pos_AddCurr(t *testing.T) {
 // Positive test, db.GetWebhook
 func Test_Pos_GetWebhook(t *testing.T) {
 	fetchedWebhook := types.WebhookInfo{}
-	// Dial database
+	// Setup session with database
 	session, err := mgo.Dial(testdb.DatabaseURL)
 	if err != nil {
 		panic(err)
@@ -116,7 +116,7 @@ func Test_Pos_GetWebhook(t *testing.T) {
 // Positive test, db.GetCurrency
 func Test_Pos_GetCurrency(t *testing.T) {
 	fetchedCurrency := types.CurrencyInfo{}
-	// Dial database
+	// Setup session with database
 	session, err := mgo.Dial(testdb.DatabaseURL)
 	if err != nil {
 		panic(err)
@@ -147,7 +147,7 @@ func Test_Pos_GetCurrency(t *testing.T) {
 // Positive test, db.GetAllWebhooks
 func Test_Pos_GetAllWebhooks(t *testing.T) {
 	fetchedWebhook := []types.WebhookInfo{}
-	// Dial database
+	// Setup session with database
 	session, err := mgo.Dial(testdb.DatabaseURL)
 	if err != nil {
 		panic(err)
@@ -184,7 +184,7 @@ func Test_Pos_GetAllWebhooks(t *testing.T) {
 // Positive test, db.GetAllCurr
 func Test_Pos_GetAllCurr(t *testing.T) {
 	fetchedCurrency := []types.CurrencyInfo{}
-	// Dial database
+	// Setup session with database
 	session, err := mgo.Dial(testdb.DatabaseURL)
 	if err != nil {
 		panic(err)
@@ -220,7 +220,7 @@ func Test_Pos_GetAllCurr(t *testing.T) {
 
 // Positive test, db.Count
 func Test_Pos_Count(t *testing.T) {
-	// Dial database
+	// Setup session with database
 	session, err := mgo.Dial(testdb.DatabaseURL)
 	if err != nil {
 		panic(err)

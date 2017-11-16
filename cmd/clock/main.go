@@ -10,26 +10,26 @@ import (
 
 var testCurr string
 
-var Warn = "[WARNING]: "
-var Error = "[ERROR]: "
-var Info = "[INFO]: "
+const logWarn = "[WARNING]: "
+const logError = "[ERROR]: "
+const logInfo = "[INFO]: "
 
 //var db = &mongodb.MongoDB{"mongodb://localhost", "Currencies", "webhook", "curr"}
 var db = &mongodb.MongoDB{"mongodb://admin:assign3@ds157185.mlab.com:57185/assignment3", "assignment3", "webhook", "curr"}
 
 func keepAlive() {
 	for true {
-		log.Println("[INFO]: ---------- keepAlive() ---------- ")
-		log.Println("[INFO]: Trying to http.Get from web")
+		log.Println(logInfo + "---------- keepAlive() ---------- ")
+		log.Println(logInfo + "Trying to http.Get from web")
 		_, err := http.Get("https://powerful-brushlands-93106.herokuapp.com/")
 		if err != nil {
-			log.Println("[ERROR]: Failed http.Get from web!")
+			log.Println(logError + "Failed http.Get from web!")
 		} else {
-			log.Println("[INFO]: Successful http.Get to web!")
+			log.Println(logInfo + "Successful http.Get to web!")
 		}
 
-		log.Println("[INFO] Sleeping for 15 min!")
-		log.Println("[INFO]: ---------- keepAlive() END ----------")
+		log.Println(logInfo + "Sleeping for 15 min!")
+		log.Println(logInfo + "---------- keepAlive() END ----------")
 		time.Sleep(time.Minute * 15)
 	}
 }
@@ -43,9 +43,9 @@ func main() {
 	for true {
 		if dayUpdated != time.Now().Format("2006-01-02") && !(time.Now().Hour() < 17) {
 			didUpdate = false
-			log.Println(Info + "--------------- Updating currency ---------------")
+			log.Println(logInfo + "--------------- Updating currency ---------------")
 			db.UpdateCurr()
-			log.Println(Info + "--------------- Invoking webhooks ---------------")
+			log.Println(logInfo + "--------------- Invoking webhooks ---------------")
 			db.InvokeWebhooks(true)
 
 			dayUpdated = time.Now().Format("2006-01-02")
@@ -55,9 +55,9 @@ func main() {
 		// Report time to sleep
 		timeLoc, _ := time.LoadLocation("CET")
 		if didUpdate {
-			log.Println("[INFO] TIME TO CURRENCY UPDATE: " + time.Until(time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day()+1, 17, 0, 0, 0, timeLoc)).String())
+			log.Println(logInfo + "TIME TO CURRENCY UPDATE: " + time.Until(time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day()+1, 17, 0, 0, 0, timeLoc)).String())
 		} else {
-			log.Println("[INFO] TIME TO CURRENCY UPDATE: " + time.Until(time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 17, 0, 0, 0, timeLoc)).String())
+			log.Println(logInfo + "TIME TO CURRENCY UPDATE: " + time.Until(time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 17, 0, 0, 0, timeLoc)).String())
 		}
 
 		// Sleep for 1 min
