@@ -25,7 +25,7 @@ const logWarn = "[WARNING]: "
 const logError = "[ERROR]: "
 const logInfo = "[INFO]: "
 
-var DB = &mongodb.MongoDB{"mongodb://admin:assign3@ds157185.mlab.com:57185/assignment3", "assignment3", "webhook", "curr"}
+var DB = &mongodb.MongoDB{"mongodb://localhost", "Testing", "testWeb", "testCurr"} //&mongodb.MongoDB{"mongodb://admin:assign3@ds157185.mlab.com:57185/assignment3", "assignment3", "webhook", "curr"}
 
 /* ---------- Root Handler functions ---------- */
 
@@ -317,15 +317,7 @@ func procDialogFlow(r *http.Request, w http.ResponseWriter) utils.CustError {
 	}
 
 	log.Printf(logInfo+"Post request for DialogFlow.\n Contains:\n %v.", jsonReq)
-	:= os.Getenv("PORT")
-	if len(port) == 0 {
-		log.Fatal(logError + "$PORT was not set")
-	}
 
-	// Registration of webhhooks goes over "/root"
-	// While viewing and deletion of webhooks goes over "/root/"
-	http.HandleFunc("/exchange", handlerRoot)
-	http.HandleFunc("/
 	// Checking request
 	log.Println(logInfo + "Validating json request")
 	if len(jsonReq.Result.Parameters.Currency) != 2 {
