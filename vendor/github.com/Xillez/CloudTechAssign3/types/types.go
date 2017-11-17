@@ -58,6 +58,9 @@ type DialogFlowReq struct {
 
 // DialogFlowResp has the required structure for response to DialogFlow bot.
 type DialogFlowResp struct {
-	Speech      string `json:"speech"`
-	DisplayText string `json:"displayText"`
+	//Speech      string `json:"speech"`
+	//DisplayText string `json:"displayText"`
+	ContextOut []struct {
+		CurrencyRate string `json:"currency-rate"`
+	} `json:"contextOut"`
 }

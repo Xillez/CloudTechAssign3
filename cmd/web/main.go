@@ -355,8 +355,11 @@ func procDialogFlow(r *http.Request, w http.ResponseWriter) utils.CustError {
 
 	resp := types.DialogFlowResp{}
 
-	resp.Speech = strconv.FormatFloat(currInfo.Rates[jsonReq.Result.Parameters.Currency[1]], 'f', -1, 64)
-	resp.DisplayText = resp.Speech + " disp"
+	resp.ContextOut = make([]struct {
+		CurrencyRate string "json:\"currency-rate\""
+	}, 1)
+	resp.ContextOut[0].CurrencyRate = strconv.FormatFloat(currInfo.Rates[jsonReq.Result.Parameters.Currency[1]], 'f', -1, 64)
+	//resp.DisplayText = resp.Speech + " disp"
 
 	// Send respons
 	log.Println(logInfo + "Trying to encode response from dialogflow to browser")
@@ -367,7 +370,7 @@ func procDialogFlow(r *http.Request, w http.ResponseWriter) utils.CustError {
 	}
 
 	// Nothing bad happened
-	log.Println(logInfo + "Average finished successfully")
+	log.Println(logInfo + "DialogFlow finished successfully")
 	return utils.CustError{0, utils.ErrorStr[0]}
 }
 
