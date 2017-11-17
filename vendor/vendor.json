@@ -12,32 +12,32 @@
 		{
 			"checksumSHA1": "vikN3oziK9aXPZtJcmJsxpmjVRY=",
 			"path": "github.com/Xillez/CloudTechAssign3/cmd/clock",
-			"revision": "91fa4c2375cfa9970744fda6ca7bd46a237bb97a",
-			"revisionTime": "2017-11-17T10:19:17Z"
+			"revision": "c628e34c25c576fc377abd6e1f20b52395c51162",
+			"revisionTime": "2017-11-17T13:33:20Z"
 		},
 		{
-			"checksumSHA1": "hnPUxAp9bTgvf+W6NSgSVp8/zCw=",
+			"checksumSHA1": "wuuRl6BP64sp4YZwkh8rbVMwyIs=",
 			"path": "github.com/Xillez/CloudTechAssign3/cmd/web",
-			"revision": "91fa4c2375cfa9970744fda6ca7bd46a237bb97a",
-			"revisionTime": "2017-11-17T10:19:17Z"
+			"revision": "c628e34c25c576fc377abd6e1f20b52395c51162",
+			"revisionTime": "2017-11-17T13:33:20Z"
 		},
 		{
 			"checksumSHA1": "sAjxSjl5PfoVmmnyWWZOyCjThDI=",
 			"path": "github.com/Xillez/CloudTechAssign3/mongodb",
-			"revision": "91fa4c2375cfa9970744fda6ca7bd46a237bb97a",
-			"revisionTime": "2017-11-17T10:19:17Z"
+			"revision": "c628e34c25c576fc377abd6e1f20b52395c51162",
+			"revisionTime": "2017-11-17T13:33:20Z"
 		},
 		{
 			"checksumSHA1": "UsOlXRPTBptHOnIqfZCSOtgi9uw=",
 			"path": "github.com/Xillez/CloudTechAssign3/types",
-			"revision": "91fa4c2375cfa9970744fda6ca7bd46a237bb97a",
-			"revisionTime": "2017-11-17T10:19:17Z"
+			"revision": "c628e34c25c576fc377abd6e1f20b52395c51162",
+			"revisionTime": "2017-11-17T13:33:20Z"
 		},
 		{
 			"checksumSHA1": "G1IHXua9WCCk0E/9QS7E7HelEE4=",
 			"path": "github.com/Xillez/CloudTechAssign3/utils",
-			"revision": "91fa4c2375cfa9970744fda6ca7bd46a237bb97a",
-			"revisionTime": "2017-11-17T10:19:17Z"
+			"revision": "c628e34c25c576fc377abd6e1f20b52395c51162",
+			"revisionTime": "2017-11-17T13:33:20Z"
 		},
 		{
 			"checksumSHA1": "1D8GzeoFGUs5FZOoyC2DpQg8c5Y=",
