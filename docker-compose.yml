@@ -1,8 +1,10 @@
 version: '3'
 services:
-  web:
-    build: ./cmd/web
-    depends_on:
-      - db
-  db:
-    image: mongo:3.4.10-jessie	# exposed at 27017
+ web:
+  build: ./cmd/web
+  depends_on:
+   - mongodb
+  links:
+   - mongodb
+ mongodb:
+  image: mongo:3.4.10-jessie	# exposed at 27017
