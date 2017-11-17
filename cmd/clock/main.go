@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -69,12 +68,10 @@ func keepAlive(isWorking *bool, shouldRun4Ever bool) {
 		_, err := http.Get("https://sleepy-eyrie-58724.herokuapp.com/")
 		if err != nil {
 			if isWorking != nil {
-				fmt.Println("Dereference! isWorking != nil")
 				(*isWorking) = false
 			}
 			log.Println(logError + "Failed http.Get from web!")
 		} else {
-			fmt.Println("Dereference! No check!")
 			(*isWorking) = true
 			log.Println(logInfo + "Successful http.Get to web!")
 		}
