@@ -43,3 +43,21 @@ type CurrencyReq struct {
 	BaseCurrency   string `json:"baseCurrency"`
 	TargetCurrency string `json:"targetCurrency"`
 }
+
+// DialogFlowReq has the essential format of the incomming requests from dialogFlow bot.
+type DialogFlowReq struct {
+	Result struct {
+		Action         string `json:"action"`
+		ActionComplete bool   `json:"actionIncomplete"`
+
+		Parameters struct {
+			Currency []string `json:"currency-name"`
+		} `json:"parameters"`
+	} `json:"result"`
+}
+
+// DialogFlowResp has the required structure for response to DialogFlow bot.
+type DialogFlowResp struct {
+	Speech      string `json:"speech"`
+	DisplayText string `json:"displayText"`
+}

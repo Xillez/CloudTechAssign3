@@ -12,7 +12,7 @@ import (
 	"github.com/Xillez/CloudTechAssign3/types"
 	"github.com/Xillez/CloudTechAssign3/utils"
 
-	mgo "gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -68,7 +68,7 @@ func Test_Pos_ProcGetWebhook(t *testing.T) {
 	}
 
 	// Clean up after testing
-	_ = session.DB(DB.DatabaseName).C(DB.WebCollName).DropCollection()
+	//_ = session.DB(DB.DatabaseName).C(DB.WebCollName).DropCollection()
 }
 
 // Positive test, ProcAddWebhook
@@ -137,7 +137,7 @@ func Test_Pos_ProcAddWebhook(t *testing.T) {
 	}
 
 	// Clean up after testing
-	_ = session.DB(DB.DatabaseName).C(DB.WebCollName).DropCollection()
+	//_ = session.DB(DB.DatabaseName).C(DB.WebCollName).DropCollection()
 }
 
 // Positive test, ProcDelWebhook

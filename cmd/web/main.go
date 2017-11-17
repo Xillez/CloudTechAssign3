@@ -11,7 +11,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"regexp"
 	"strconv"
 	"time"
 
@@ -44,14 +43,9 @@ func procGetWebHook(url string, w http.ResponseWriter) utils.CustError {
 
 	log.Println(logInfo + "Validating GetWebhook request")
 	// Validate user input just in case of attack
-	validID, errReg := regexp.MatchString("^[0-9a-f]{24}$", splitURL[2])
-	if errReg != nil {
+	if bson.IsObjectIdHex(splitURL[2]) {
 		// Somehting went wrong! Inform the user!
-		log.Println(logWarn + "Validating failed! Informing user!")
-		return utils.CustError{http.StatusInternalServerError, utils.ErrorStr[10] + ": \"" + splitURL[2] + "\""}
-	} else if !validID {
-		// Somehting went wrong! Inform the user!
-		log.Println(logWarn + "Validating failed! Informing user!")
+		log.Println(logWarn + "Validating failed! Informing user! Id not acceptable: " + splitURL[2])
 		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": Given webhook id is invalid!"}
 	}
 
@@ -100,27 +94,27 @@ func procAddWebHook(r *http.Request, w http.ResponseWriter) utils.CustError {
 	log.Println(logInfo + "Validating data from recieved AddWebhook request")
 	// Validate vital data
 	if webhook.URL == "" {
-		log.Println(logWarn + "Validation failed! Informing user! URL")
+		log.Println(logWarn + "Validation failed! Informing user! URL is not present!")
 		// Somehting went wrong! Inform the user!
 		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": \"webhookURL\" can't be empty!"}
 	}
 	if webhook.BaseCurrency != "EUR" {
-		log.Println(logWarn + "Validation failed! Informing user! BASE")
+		log.Println(logWarn + "Validation failed! Informing user! \"baseCurrency\" not \"EUR\"")
 		// Somehting went wrong! Inform the user!
 		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": \"baseCurrency\" has to be \"EUR\"!"}
 	}
 	if len(webhook.TargetCurrency) != 3 {
-		log.Println(logWarn + "Validating failed! Informing user! TARGET")
+		log.Println(logWarn + "Validating failed! Informing user! \"targetCurrency\" has to be 3 long!")
 		// Somehting went wrong! Inform the user!
 		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": \"targetCurrency\" has to be 3 long!"}
 	}
 	if webhook.MinValue < 0 && webhook.MinValue > webhook.MaxValue {
-		log.Println(logWarn + "Validating failed! Informing user! MIN")
+		log.Println(logWarn + "Validating failed! Informing user! \"minTriggerValue\" not between 0 - \"maxTriggerValue\"")
 		// Somehting went wrong! Inform the user!
 		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": \"minTriggerValue\" need to be between 0 - \"maxTriggerValue\""}
 	}
 	if webhook.MaxValue < webhook.MinValue {
-		log.Println(logWarn + "Validating failed! Informing user! MAX")
+		log.Println(logWarn + "Validating failed! Informing user! \"maxTriggerValue\" has to be >= \"minTriggerValue\"")
 		// Somehting went wrong! Inform the user!
 		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": \"maxTriggerValue\" has to be >= \"minTriggerValue\""}
 	}
@@ -165,13 +159,8 @@ func procDelWebHook(url string, w http.ResponseWriter) utils.CustError {
 
 	// Validate vital data
 	log.Println(logInfo + "Validating DelWebhook request data")
-	validID, errReg := regexp.MatchString("^[0-9a-f]{24}$", splitURL[2])
-	if errReg != nil {
-		log.Println(logWarn + "Validation failed! Informing user!")
-		// Somehting went wrong! Inform the user!
-		return utils.CustError{http.StatusInternalServerError, utils.ErrorStr[10] + ": \"" + splitURL[2] + "\""}
-	} else if !validID {
-		log.Println(logWarn + "Validation failed! Informing user!")
+	if bson.IsObjectIdHex(splitURL[2]) {
+		log.Println(logWarn + "Validation failed! Given webhook id is invalid!")
 		// Somehting went wrong! Inform the user!
 		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": Given webhook id is invalid!"}
 	}
@@ -203,6 +192,7 @@ func procLatest(r *http.Request, w http.ResponseWriter) utils.CustError {
 	log.Println(logInfo + "Decoding latest request body")
 	errDec := json.NewDecoder(r.Body).Decode(&currReq)
 	if errDec != nil {
+		log.Println(logInfo + "Failed decoding latest request body")
 		// Somehting went wrong! Inform the user!
 		return utils.CustError{http.StatusInternalServerError, "Latest currency exchange request decoding failed!"}
 	}
@@ -210,13 +200,13 @@ func procLatest(r *http.Request, w http.ResponseWriter) utils.CustError {
 	// Validate vital data
 	log.Println(logInfo + "Validating data from latest request")
 	if currReq.BaseCurrency != "EUR" {
-		log.Println(logWarn + "Validation failed! Informing user!")
+		log.Println(logWarn + "Validation failed! \"baseCurrency\" has to be \"EUR\"!")
 		// Somehting went wrong! Inform the user!
 		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": \"baseCurrency\" has to be \"EUR\"!"}
 	}
 	if len(currReq.TargetCurrency) != 3 {
 		// Somehting went wrong! Inform the user!
-		log.Println(logWarn + "Validation failed! Informing user!")
+		log.Println(logWarn + "Validation failed! \"targetCurrency\" has to be 3 long!")
 		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": \"targetCurrency\" has to be 3 long!"}
 	}
 
@@ -287,13 +277,13 @@ func procAverage(r *http.Request, w http.ResponseWriter) utils.CustError {
 	// Validate vital data
 	log.Println(logInfo + "Validating data")
 	if curr.BaseCurrency != "EUR" {
-		log.Println(logWarn + "Validation failed! Informing user!")
+		log.Println(logWarn + "Validation failed! \"baseCurrency\" has to be \"EUR\"!")
 		// Somehting went wrong! Inform the user!
 		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": \"baseCurrency\" has to be \"EUR\"!"}
 	}
 	if len(curr.TargetCurrency) != 3 {
 		// Somehting went wrong! Inform the user!
-		log.Println(logWarn + "Validation failed! Informing user!")
+		log.Println(logWarn + "Validation failed! \"targetCurrency\" has to be 3 long!")
 		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": \"targetCurrency\" has to be 3 long!"}
 	}
 
@@ -305,6 +295,76 @@ func procAverage(r *http.Request, w http.ResponseWriter) utils.CustError {
 
 	log.Println(logInfo + "Writing average to browser")
 	fmt.Fprintf(w, strconv.FormatFloat(avg, 'f', -1, 64))
+
+	// Nothing bad happened
+	log.Println(logInfo + "Average finished successfully")
+	return utils.CustError{0, utils.ErrorStr[0]}
+}
+
+// procDialogFlow - Takes JSON structure from the DialogFlow bot and responds
+// with the latest exchange rate as the currency-rate variable.
+func procDialogFlow(r *http.Request, w http.ResponseWriter) utils.CustError {
+
+	log.Println(logInfo + "--------------- Got DialogFlow Request ---------------")
+
+	jsonReq := types.DialogFlowReq{}
+
+	log.Println(logInfo + "Trying to decode request")
+	err := json.NewDecoder(r.Body).Decode(&jsonReq)
+	if err != nil {
+		log.Printf(logWarn+"Could not decode JSON. Error: %v", err)
+		return utils.CustError{http.StatusBadRequest, "Invalid JSON format"}
+	}
+
+	log.Printf(logInfo+"Post request for DialogFlow.\n Contains:\n %v.", jsonReq)
+
+	// Checking request
+	log.Println(logInfo + "Validating json request")
+	if len(jsonReq.Result.Parameters.Currency) != 2 {
+		log.Println(logInfo + "Validation failed! \"Currency\" isn't 2 long!")
+		return utils.CustError{http.StatusBadRequest, "Expected two Parameters"}
+	}
+
+	if jsonReq.Result.Parameters.Currency[0] != "EUR" {
+		log.Println(logInfo + "Validation failed! First \"Currency\" isn't \"EUR\"!")
+		return utils.CustError{http.StatusNotImplemented, "'EUR' is the only base currency for now"}
+	}
+
+	currInfo := types.CurrencyInfo{}
+
+	// Getting latest from database
+	log.Println(logInfo + "Trying to get currency by date")
+	errRetCurr := DB.GetCurrByDate(time.Now().Format("2006-01-02"), &currInfo)
+	if errRetCurr.Status != 0 {
+
+		log.Println(logInfo + "Failed getting for current day, trying to get from yesterday instead (it's before 17:00)")
+
+		errRetCurr := DB.GetCurrByDate(time.Now().AddDate(0, 0, -1).Format("2006-01-02"), &currInfo)
+		if errRetCurr.Status != 0 {
+			return errRetCurr
+		}
+	}
+
+	// Checking target currency is valid
+	if currInfo.Rates[string(jsonReq.Result.Parameters.Currency[1])] == 0 {
+		return utils.CustError{http.StatusBadRequest, "Did not recognice the target currency"}
+	}
+
+	// Creating response
+	http.Header.Add(w.Header(), "content-type", "text/plain")
+
+	resp := types.DialogFlowResp{}
+
+	resp.Speech = strconv.FormatFloat(currInfo.Rates[jsonReq.Result.Parameters.Currency[1]], 'f', -1, 64)
+	resp.DisplayText = resp.Speech + " disp"
+
+	// Send respons
+	log.Println(logInfo + "Trying to encode response from dialogflow to browser")
+	errEncode := json.NewEncoder(w).Encode(&resp)
+	if errEncode != nil {
+		log.Println(logError + "Failed to encode response to browser!")
+		return utils.CustError{http.StatusInternalServerError, "Could not encoding result"}
+	}
 
 	// Nothing bad happened
 	log.Println(logInfo + "Average finished successfully")
@@ -370,10 +430,24 @@ func handlerEvalTrigger(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// HandlerDialogFlow - DialogFlow entry point, used when dialogflow want to communicate
+func handlerDialogFlow(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		utils.CheckPrintErr(procDialogFlow(r, w), w)
+	} else {
+		utils.CheckPrintErr(utils.CustError{http.StatusMethodNotAllowed, "Expected a POST request"}, w)
+	}
+}
+
 func main() {
 	err := DB.Init()
 	if err != nil {
 		panic(err)
+	}
+
+	port := os.Getenv("PORT")
+	if len(port) == 0 {
+		log.Fatal(logError + "$PORT was not set")
 	}
 
 	// Registration of webhhooks goes over "/root"
@@ -383,5 +457,7 @@ func main() {
 	http.HandleFunc("/exchange/latest", handlerLatest)
 	http.HandleFunc("/exchange/average", handlerAverage)
 	http.HandleFunc("/exchange/evaluationtrigger", handlerEvalTrigger)
-	http.ListenAndServe(":"+os.Getenv("PORT"), nil)
+	http.HandleFunc("/exchange/dialogFlowEntryPoint", handlerDialogFlow)
+	log.Printf(logInfo+"Listening on port: %v", port)
+	http.ListenAndServe(":"+port, nil)
 }
