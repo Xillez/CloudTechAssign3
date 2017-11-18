@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -43,7 +44,12 @@ func procGetWebHook(url string, w http.ResponseWriter) utils.CustError {
 
 	log.Println(logInfo + "Validating GetWebhook request")
 	// Validate user input just in case of attack
-	if bson.IsObjectIdHex(splitURL[2]) {
+	match, errMatch := regexp.MatchString("[a-f0-9]{24}", splitURL[2])
+	if errMatch != nil {
+		// Somehting went wrong! Inform the user!
+		log.Println(logWarn + "Validating failed! Informing user! Couldn't validate id!")
+		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": Something went wrong!"}
+	} else if !match { // Doesn' work for some reason: bson.IsObjectIdHex(bson.NewObjectId().Hex()) {
 		// Somehting went wrong! Inform the user!
 		log.Println(logWarn + "Validating failed! Informing user! Id not acceptable: " + splitURL[2])
 		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": Given webhook id is invalid!"}
@@ -159,7 +165,7 @@ func procDelWebHook(url string, w http.ResponseWriter) utils.CustError {
 
 	// Validate vital data
 	log.Println(logInfo + "Validating DelWebhook request data")
-	if bson.IsObjectIdHex(splitURL[2]) {
+	if !bson.IsObjectIdHex(splitURL[2]) {
 		log.Println(logWarn + "Validation failed! Given webhook id is invalid!")
 		// Somehting went wrong! Inform the user!
 		return utils.CustError{http.StatusNotAcceptable, utils.ErrorStr[3] + ": Given webhook id is invalid!"}
@@ -355,11 +361,16 @@ func procDialogFlow(r *http.Request, w http.ResponseWriter) utils.CustError {
 
 	resp := types.DialogFlowResp{}
 
-	resp.ContextOut = make([]struct {
-		CurrencyRate string "json:\"currency-rate\""
-	}, 1)
-	resp.ContextOut[0].CurrencyRate = strconv.FormatFloat(currInfo.Rates[jsonReq.Result.Parameters.Currency[1]], 'f', -1, 64)
-	//resp.DisplayText = resp.Speech + " disp"
+	resp.Speech = strconv.FormatFloat(currInfo.Rates[jsonReq.Result.Parameters.Currency[1]], 'f', -1, 64)
+	resp.DisplayText = resp.Speech + " disp"
+
+	/*
+		resp.ContextOut = make([]struct {
+			CurrencyRate string "json:\"currency-rate\""
+		}, 1)
+		resp.ContextOut[0].CurrencyRate = strconv.FormatFloat(currInfo.Rates[jsonReq.Result.Parameters.Currency[1]], 'f', -1, 64)
+		//resp.DisplayText = resp.Speech + " disp"
+	*/
 
 	// Send respons
 	log.Println(logInfo + "Trying to encode response from dialogflow to browser")

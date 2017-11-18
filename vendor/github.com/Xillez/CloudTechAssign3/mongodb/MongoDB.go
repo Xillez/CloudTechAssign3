@@ -199,7 +199,7 @@ func (db *MongoDB) AddWebhook(webhook types.WebhookInfo) utils.CustError {
 	errInsert := session.DB(db.DatabaseName).C(db.WebCollName).Insert(webhook)
 	if errInsert != nil {
 		// Something went wrong! Inform the user!
-		log.Println(logError + "Failed inserting given wehook! Inform the user!")
+		log.Println(logError + "Failed inserting given wehook! Inform the user! | Error: " + errInsert.Error())
 		return utils.CustError{http.StatusInternalServerError, "Failed inserting webhook to database!"}
 	}
 
@@ -254,7 +254,7 @@ func (db *MongoDB) UpdateCurr() utils.CustError {
 	log.Println(logInfo + "Fetching and Decoding latest currency request from fixer")
 	errCurr := utils.FetchDecodedJSON(utils.FixerURL+"/latest?base=EUR", &currResp)
 	if errCurr.Status != 0 {
-		log.Println(logError + "Failed fetching latest currencies! | Status: " + strconv.Itoa(errCurr.Status) + "Msg: " + errCurr.Msg) //errCurr.Error())
+		log.Println(logError + "Failed fetching latest currencies! | Status: " + strconv.Itoa(errCurr.Status) + " | Msg: " + errCurr.Msg) //errCurr.Error())
 		return utils.CustError{http.StatusInternalServerError, ""}
 	}
 
