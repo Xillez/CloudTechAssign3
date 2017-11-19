@@ -457,10 +457,10 @@ func main() {
 
 	dbHost := os.Getenv("DATABASE_HOST")
 	if len(dbHost) == 0{
-		log.Printf(Warn + "$DATABASE_HOST was not set. Will use standard %v", DB.DatabaseURL)
+		log.Printf(logWarn + "$DATABASE_HOST was not set. Will use standard %v", DB.DatabaseURL)
 	}else{
 		DB.DatabaseURL = dbHost
-		log.Printf(Info + "database host is %s ", DB.DatabaseURL)
+		log.Printf(logInfo + "database host is %s ", DB.DatabaseURL)
 	}
 
 	err := DB.Init()
