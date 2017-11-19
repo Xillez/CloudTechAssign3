@@ -31,59 +31,59 @@ type CustError struct {
 	Msg    string
 }
 
-var Warn = "[WARNING]: "
-var Error = "[ERROR]: "
-var Info = "[INFO]: "
+const logWarn = "[WARNING]: "
+const logError = "[ERROR]: "
+const logInfo = "[INFO]: "
 
 // CheckPrintErr - Checks for error, print it if any and returns true, otherwise returns false
 func CheckPrintErr(err CustError, w http.ResponseWriter) bool {
 	if err.Status != 0 {
-		log.Println(Info + "Found error to user, displaying...")
+		log.Println(logInfo + "Found error to user, displaying...")
 		http.Error(w, http.StatusText(err.Status)+" | Program error: "+err.Msg, err.Status)
 		return true
 	}
 
 	// Say that every thing went ok
-	//log.Println(Info + "Found no error to report")
+	//log.Println(logInfo + "Found no error to report")
 	return false
 }
 
 // GetSplitURL - Get the URL given to server and splits it for processing
 func GetSplitURL(url string, expectedNrSplits int) ([]string, CustError) {
-	log.Println(Info + "Splitting URL...")
+	log.Println(logInfo + "Splitting URL...")
 	parts := strings.Split(url, "/")
 
 	// Missing a field/part of URL
 	if len(parts) != expectedNrSplits {
-		log.Println(Error + "Splitting resulted in not expected nr components!")
+		log.Println(logError + "Splitting resulted in not expected nr components!")
 		return nil, CustError{http.StatusBadRequest, ErrorStr[6]}
 	}
 
-	log.Println(Info + "Splitting URL finished successfully")
+	log.Println(logInfo + "Splitting URL finished successfully")
 	// Nothing bad happened
 	return parts, CustError{0, ErrorStr[0]}
 }
 
 // FetchDecodedJSON - Fetches and decodes json into given variable
 func FetchDecodedJSON(url string, updated interface{}) CustError {
-	log.Println(Info + "Getting from URL: " + url)
+	log.Println(logInfo + "Getting from URL: " + url)
 	resp, err := http.Get(url)
 	if err != nil {
 		// Somehting went wrong! Inform the user!
-		log.Println(Error + "Couldn't find the URL user requested!")
+		log.Println(logError + "Couldn't find the URL user requested!")
 		return CustError{http.StatusBadRequest, ErrorStr[6]}
 	}
 
 	// Decode
-	log.Println(Info + "Decoding request into given interface")
+	log.Println(logInfo + "Decoding request into given interface")
 	err = json.NewDecoder(resp.Body).Decode(&updated)
 	if err != nil {
 		// Somehting went wrong! Inform the user!
-		log.Println(Info + "Decoding failed! Inform User!")
+		log.Println(logInfo + "Decoding failed! Inform User!")
 		return CustError{http.StatusInternalServerError, ErrorStr[8]}
 	}
 
-	log.Println(Info + "Fetching and decoding URL finished successfully")
+	log.Println(logInfo + "Fetching and decoding URL finished successfully")
 	// Nothing bad happened
 	return CustError{0, ErrorStr[0]}
 }
