@@ -26,7 +26,7 @@ var Warn = "[WARNING]: "
 var Error = "[ERROR]: "
 var Info = "[INFO]: "
 
-var DB = &mongodb.MongoDB{"mongodb://admin:assign3@ds157185.mlab.com:57185/assignment3", "assignment3", "webhook", "curr"}
+var DB = &mongodb.MongoDB{"mongodb://localhost", "assignment3", "webhook", "curr"}
 
 /* ---------- Root Handler functions ---------- */
 
@@ -454,6 +454,15 @@ func handlerDialogFlow(w http.ResponseWriter, r *http.Request){
 }
 
 func main() {
+
+	dbHost := os.Getenv("DATABASE_HOST")
+	if len(dbHost) == 0{
+		log.Printf(Warn + "$DATABASE_HOST was not set. Will use standard %v", DB.DatabaseURL)
+	}else{
+		DB.DatabaseURL = dbHost
+		log.Printf(Info + "database host is %s ", DB.DatabaseURL)
+	}
+
 	err := DB.Init()
 	if err != nil {
 		panic(err)
@@ -463,7 +472,6 @@ func main() {
 	if len(port) == 0 {
 		log.Fatal(Error + "$PORT was not set")
 	}
-
 
 	// Registration of webhhooks goes over "/root"
 	// While viewing and deletion of webhooks goes over "/root/"

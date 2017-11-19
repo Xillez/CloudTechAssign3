@@ -1,10 +1,36 @@
-version: '3'
+# Docker-compose file format
+version: '3.3'
+
+# What the project compose of
 services:
  web:
+
+  # File defining environment variables | PORT and DATABASE_HOST
+  env_file: ./cmd/web/.env
   build: ./cmd/web
+
+  # connects 8080 to 8080 on the container and exposes the port on the continer side
+  ports:
+  - "8080:8080"
+
+  # Require a database for storing currencies and webhook
   depends_on:
-   - mongodb
+   - mongodb 
+
+   # Link to the database container
   links:
-   - mongodb
+   - mongodb:mydb
+
+   # Make the database container from online image
  mongodb:
-  image: mongo:3.4.10-jessie	# exposed at 27017
+
+  # exposed at 27017
+  image: mongo:3.4.10-jessie
+
+  # Where to store the data
+  volumes:
+  - db-data:/data/db
+
+# Storage 
+volumes:
+ db-data:
