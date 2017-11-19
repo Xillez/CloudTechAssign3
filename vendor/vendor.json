@@ -10,22 +10,22 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "8AcC+cZWBAE+v6HkaN1UNVLzpC8=",
+			"checksumSHA1": "G64PisJdp4Ng5ZKMKtrMwesa93s=",
 			"path": "github.com/Xillez/CloudTechAssign3/mongodb",
-			"revision": "996074e22a157a6515a02bb7f9026a19e5d4d4d6",
-			"revisionTime": "2017-11-18T14:36:45Z"
+			"revision": "663e308a07e4096dba684a03bb3c6cd904b28665",
+			"revisionTime": "2017-11-18T14:42:14Z"
 		},
 		{
 			"checksumSHA1": "OjCq5sdW9AQGyBsYAZD7J0d74Rw=",
 			"path": "github.com/Xillez/CloudTechAssign3/types",
-			"revision": "996074e22a157a6515a02bb7f9026a19e5d4d4d6",
-			"revisionTime": "2017-11-18T14:36:45Z"
+			"revision": "663e308a07e4096dba684a03bb3c6cd904b28665",
+			"revisionTime": "2017-11-18T14:42:14Z"
 		},
 		{
-			"checksumSHA1": "G1IHXua9WCCk0E/9QS7E7HelEE4=",
+			"checksumSHA1": "zLMl4i+zxCWJaEn5tTIBFL2TSk4=",
 			"path": "github.com/Xillez/CloudTechAssign3/utils",
-			"revision": "996074e22a157a6515a02bb7f9026a19e5d4d4d6",
-			"revisionTime": "2017-11-18T14:36:45Z"
+			"revision": "663e308a07e4096dba684a03bb3c6cd904b28665",
+			"revisionTime": "2017-11-18T14:42:14Z"
 		},
 		{
 			"checksumSHA1": "1D8GzeoFGUs5FZOoyC2DpQg8c5Y=",

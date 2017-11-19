@@ -22,7 +22,7 @@ var ErrorStr = []string{
 	"Faliure Encoding",
 	"Faliure Decoding",
 	"Method Not Implemented",
-	"RegExp String Validation Faliure",
+	"RegExp String Validation Failiure",
 }
 
 // CustError - A custom error type

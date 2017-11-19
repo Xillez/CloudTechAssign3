@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/Xillez/CloudTechAssign3/mongodb"
 	"github.com/Xillez/CloudTechAssign3/types"
@@ -22,6 +23,7 @@ import (
 var testWebhookPos = types.WebhookInfo{bson.NewObjectId(), "http://webhook:8080/something", "EUR", "NOK", 0.5, 2.0}
 var testWebhookNeg = types.WebhookInfo{bson.NewObjectId(), "http://webhook:8080/something", "CAD", "NOK", 0.5, 2.0}
 var testCurrPos = types.CurrencyInfo{bson.NewObjectId(), "EUR", "2017-01-01", map[string]float64{"NOK": 2.0}}
+var testCurrReqPos = types.CurrencyReq{"EUR", "NOK"}
 var client = http.Client{}
 
 func Test_TestingSetup(t *testing.T) {
@@ -168,7 +170,6 @@ func Test_Pos_ProcDelWebhook(t *testing.T) {
 
 	// Make server for testing
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println(r.URL.Path)
 		utils.CheckPrintErr(procDelWebHook(r.URL.Path, w), w)
 	}))
 	defer server.Close()
@@ -183,8 +184,6 @@ func Test_Pos_ProcDelWebhook(t *testing.T) {
 
 	// Set content as applicaiton/json
 	req.Header.Add("content-type", "application/json")
-
-	fmt.Printf("%v\n", testWebhookPos)
 
 	// Setup POST request
 	_, err = client.Do(req)
@@ -205,4 +204,92 @@ func Test_Pos_ProcDelWebhook(t *testing.T) {
 
 	// Clean up after testing, if needed
 	_ = session.DB(DB.DatabaseName).C(DB.WebCollName).DropCollection()
+}
+
+// Positive test, ProcAverage
+func Test_Pos_ProcAverage(t *testing.T) {
+	// Setup session with database
+	session, err := mgo.Dial(DB.DatabaseURL)
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+
+	// Make sure currency collection is empty
+	_ = session.DB(DB.DatabaseName).C(DB.CurrCollName).DropCollection()
+
+	// Initialize database after droping it
+	DB.Init()
+
+	// Save old date and ID for later
+	/*testCurrPos_OldDate := testCurrPos.Date
+	testCurrPos_OldID := testCurrPos.ID*/
+
+	for i := 0; i < 3; i++ {
+		// Set date to the current day - i
+		testCurrPos.Date = time.Now().AddDate(0, 0, -i).Format("2006-01-02")
+		if time.Now().Hour() < 17 {
+			testCurrPos.Date = time.Now().AddDate(0, 0, -(i + 1)).Format("2006-01-02")
+		}
+		// Set a new ID for each iteration
+		testCurrPos.ID = bson.NewObjectId()
+
+		fmt.Printf("%v\n", testCurrPos)
+
+		// Add testCurrency to database
+		err = session.DB(DB.DatabaseName).C(DB.WebCollName).Insert(&testCurrPos)
+		if err != nil {
+			t.Error("Failed adding test currency nr:  " + strconv.Itoa(i) + " with date " + testCurrPos.Date + " to database")
+		}
+	}
+
+	// Make server for testing
+	/*server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		utils.CheckPrintErr(procAverage(r, w), w)
+	}))
+	defer server.Close()
+
+	// Convert to byteReader
+	byteSlice, _ := json.Marshal(testCurrReqPos)
+	byteReader := bytes.NewReader(byteSlice)
+	reader := ioutil.NopCloser(byteReader)
+	//fmt.Println(string(byteSlice))
+	//l, _ := ioutil.ReadAll(reader)
+	//fmt.Println(string(l))
+
+	// Make the request
+	req, err := http.NewRequest("POST", server.URL+"/exchange/average", reader)
+	if err != nil {
+		t.Error("Failed to construct new request to server! | Error: " + err.Error())
+	}
+
+	// Set content as applicaiton/json
+	req.Header.Add("content-type", "application/json")
+
+	// Set POST request
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Error("Failed to POST to  \"" + server.URL + "\" | Error: " + err.Error())
+	}
+
+	slice, err := ioutil.ReadAll(resp.Body)
+	fmt.Println(string(slice))
+	avg, errParseFloat := strconv.ParseFloat(string(slice), 64)
+	if err != nil {
+		t.Error("Failed to ReadAll response from \"" + server.URL + "\" | Error: " + err.Error())
+	}
+	if errParseFloat != nil {
+		t.Error("Failed to ParseFloat within response from \"" + server.URL + "\" | Error: " + errParseFloat.Error())
+	}
+
+	if avg != testCurrPos.Rates["NOK"] {
+		t.Error("Average of NOK over 3 days with similar rate each day isn't what it's supposed to be! | Expected : " + strconv.FormatFloat(testCurrPos.Rates["NOK"], 'f', -1, 64) + " | Got: " + strconv.FormatFloat(avg, 'f', -1, 64))
+	}
+
+	// Clean up testCurrPos.Date and ID
+	testCurrPos.Date = testCurrPos_OldDate
+	testCurrPos.ID = testCurrPos_OldID*/
+
+	// Clean up after testing
+	_ = session.DB(DB.DatabaseName).C(DB.CurrCollName).DropCollection()
 }

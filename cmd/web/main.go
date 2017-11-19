@@ -250,14 +250,14 @@ func fetchAverage(baseCurr string, targetCurr string) (float64, utils.CustError)
 		}
 
 		// Get currency document with specified date
-		log.Println(logInfo + "Trying to get currency with date: " + date + " from databse!")
+		log.Println(logInfo + "Trying to get currency with date: " + date + " from database!")
 		err := DB.GetCurrByDate(date, &curr[i])
 		if err.Status != 0 {
-			return 0.0, utils.CustError{http.StatusInternalServerError, utils.ErrorStr[1] + " | Error: Failed to get average!"}
+			return 0.0, utils.CustError{http.StatusInternalServerError, utils.ErrorStr[3] + " | Error: Failed to get average!"}
 		}
 
 		// Add up given TargetCurrency's rate for averaging
-		log.Println(logInfo + "Adding all " + strconv.Itoa(len(curr)) + " day of rates for TargetCurrency")
+		log.Println(logInfo + "Adding all " + strconv.Itoa(len(curr)) + " days of rates for TargetCurrency")
 		avg += curr[i].Rates[targetCurr]
 	}
 

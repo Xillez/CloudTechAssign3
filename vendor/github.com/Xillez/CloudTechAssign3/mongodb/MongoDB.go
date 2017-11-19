@@ -167,7 +167,7 @@ func (db *MongoDB) GetCurrByDate(date string, curr *types.CurrencyInfo) utils.Cu
 	defer session.Close()
 
 	// Try to get currency details from database
-	log.Println(logInfo + "Trying to get currency with given date")
+	log.Println(logInfo + "Trying to get currency with given date: " + date)
 	errFind := session.DB(db.DatabaseName).C(db.CurrCollName).Find(bson.M{"date": date}).One(&curr)
 	if errFind != nil {
 		// Something went wrong! Inform the user!
